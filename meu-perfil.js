@@ -71,6 +71,9 @@ let currentApproximateLocation = null;
 let currentPhotoURL = "";
 let profileIsLoading = false;
 
+let locationIsLoading = false;
+let locationSafetyTimer = null;
+
 /* ==============================
    DADOS ALTERNATIVOS
 ================================ */
@@ -170,11 +173,19 @@ function updateMapControlsState() {
       profileAvailableInput.checked = false;
     }
 
-    profileAvailableInput.disabled = profileIsLoading || !appearOnMap;
+    profileAvailableInput.disabled =
+      profileIsLoading || locationIsLoading || !appearOnMap;
   }
 
   if (profileLocationButton) {
-    profileLocationButton.disabled = profileIsLoading || !appearOnMap;
+    profileLocationButton.disabled =
+      profileIsLoading || locationIsLoading || !appearOnMap;
+  }
+
+  if (locationIsLoading) {
+    showLocationStatus("Buscando sua localização aproximada...");
+
+    return;
   }
 
   if (!appearOnMap && !profileIsLoading) {
@@ -200,7 +211,6 @@ function updateMapControlsState() {
     );
   }
 }
-
 /* ==============================
    CARREGAMENTO
 ================================ */
@@ -463,13 +473,35 @@ function getLocationErrorMessage(error) {
 
   return messages[error?.code] || "Não foi possível acessar sua localização.";
 }
+function finishLocationRequest(buttonText) {
+  locationIsLoading = false;
 
+  if (locationSafetyTimer) {
+    window.clearTimeout(locationSafetyTimer);
+    locationSafetyTimer = null;
+  }
+
+  updateMapControlsState();
+
+  if (profileLocationButton) {
+    profileLocationButton.textContent = buttonText;
+  }
+}
 function captureApproximateLocation() {
   clearProfileMessage();
 
   if (!profileAppearOnMapInput?.checked) {
     showProfileMessage(
       "Ative a opção “Aparecer no mapa” antes de definir sua localização.",
+    );
+
+    return;
+  }
+
+  if (!window.isSecureContext) {
+    showLocationStatus(
+      "A localização precisa ser acessada por uma página HTTPS.",
+      "error",
     );
 
     return;
@@ -484,49 +516,94 @@ function captureApproximateLocation() {
     return;
   }
 
-  if (profileLocationButton) {
-    profileLocationButton.disabled = true;
+  if (locationIsLoading) {
+    return;
+  }
 
+  locationIsLoading = true;
+
+  if (profileLocationButton) {
     profileLocationButton.textContent = "Localizando...";
   }
 
-  showLocationStatus("Buscando sua localização aproximada...");
+  updateMapControlsState();
+
+  /*
+    Proteção adicional caso o navegador não execute
+    nem o retorno de sucesso nem o retorno de erro.
+  */
+
+  locationSafetyTimer = window.setTimeout(() => {
+    if (!locationIsLoading) {
+      return;
+    }
+
+    finishLocationRequest(
+      currentApproximateLocation
+        ? "Atualizar localização"
+        : "Usar minha localização",
+    );
+
+    showLocationStatus(
+      "O celular não respondeu à solicitação de localização. Confira a permissão do navegador e tente novamente.",
+      "error",
+    );
+  }, 25000);
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
+      if (!locationIsLoading) {
+        return;
+      }
+
       currentApproximateLocation = getApproximateLocation(
         position.coords.latitude,
         position.coords.longitude,
       );
 
+      finishLocationRequest("Atualizar localização");
+
       showLocationStatus(
         "Localização aproximada capturada. Clique em “Salvar alterações”.",
         "success",
       );
-
-      if (profileLocationButton) {
-        profileLocationButton.textContent = "Atualizar localização";
-      }
-
-      updateMapControlsState();
     },
 
     (error) => {
-      console.error("[Meu Perfil] Erro de localização:", error);
-
-      showLocationStatus(getLocationErrorMessage(error), "error");
-
-      if (profileLocationButton) {
-        profileLocationButton.textContent = "Usar minha localização";
+      if (!locationIsLoading) {
+        return;
       }
 
-      updateMapControlsState();
+      console.error("[Meu Perfil] Erro de localização:", error);
+
+      finishLocationRequest(
+        currentApproximateLocation
+          ? "Atualizar localização"
+          : "Usar minha localização",
+      );
+
+      /*
+        A mensagem é exibida depois de atualizar os controles,
+        evitando que updateMapControlsState apague o erro.
+      */
+
+      showLocationStatus(getLocationErrorMessage(error), "error");
     },
 
     {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 300000,
+      /*
+        O Origo armazena uma localização aproximada,
+        arredondada para duas casas decimais.
+
+        Alta precisão não é necessária e pode deixar
+        alguns celulares presos buscando o GPS.
+      */
+
+      enableHighAccuracy: false,
+
+      timeout: 20000,
+
+      maximumAge: 600000,
     },
   );
 }
