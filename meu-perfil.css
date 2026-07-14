@@ -599,546 +599,546 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
-  /* ==============================
+}
+/* ==============================
    CONFIGURAÇÕES DO MAPA
 ================================ */
 
-  .profile-map-settings {
-    width: 100%;
+.profile-map-settings {
+  width: 100%;
 
-    padding: 18px;
+  padding: 18px;
 
-    border: 1px solid #dfe5e7;
-    border-radius: 18px;
+  border: 1px solid #dfe5e7;
+  border-radius: 18px;
 
-    background-color: #f6f8f9;
+  background-color: #f6f8f9;
 
-    box-shadow: 0 3px 9px rgba(8, 38, 50, 0.08);
-  }
+  box-shadow: 0 3px 9px rgba(8, 38, 50, 0.08);
+}
 
-  /* ==============================
+/* ==============================
    CABEÇALHO DO BLOCO
 ================================ */
 
-  .profile-map-settings-header {
-    width: 100%;
+.profile-map-settings-header {
+  width: 100%;
 
-    padding-bottom: 15px;
+  padding-bottom: 15px;
 
-    border-bottom: 1px solid #dfe5e7;
-  }
+  border-bottom: 1px solid #dfe5e7;
+}
 
-  .profile-map-settings-title {
-    color: var(--color-background-end);
+.profile-map-settings-title {
+  color: var(--color-background-end);
 
-    font-family: var(--font-black);
-    font-size: 18px;
-    font-weight: 900;
-    line-height: 1.2;
-  }
+  font-family: var(--font-black);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.2;
+}
 
-  .profile-map-settings-description {
-    margin-top: 5px;
+.profile-map-settings-description {
+  margin-top: 5px;
 
-    color: #5d6a70;
+  color: #5d6a70;
 
-    font-family: var(--font-interface);
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 1.4;
-  }
+  font-family: var(--font-interface);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+}
 
-  /* ==============================
+/* ==============================
    OPÇÕES DE VISIBILIDADE
 ================================ */
 
-  .profile-map-options {
-    width: 100%;
+.profile-map-options {
+  width: 100%;
 
-    margin-top: 15px;
+  margin-top: 15px;
 
-    overflow: hidden;
+  overflow: hidden;
 
-    border: 1px solid #e0e5e7;
-    border-radius: 14px;
+  border: 1px solid #e0e5e7;
+  border-radius: 14px;
 
-    background-color: #ffffff;
-  }
+  background-color: #ffffff;
+}
 
-  .profile-toggle-row {
-    width: 100%;
-    min-height: 74px;
+.profile-toggle-row {
+  width: 100%;
+  min-height: 74px;
 
-    padding: 13px 14px;
+  padding: 13px 14px;
 
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 48px;
-    align-items: center;
-    gap: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 14px;
 
-    cursor: pointer;
-  }
+  cursor: pointer;
+}
 
-  .profile-toggle-row + .profile-toggle-row {
-    border-top: 1px solid #e4e8e9;
-  }
+.profile-toggle-row + .profile-toggle-row {
+  border-top: 1px solid #e4e8e9;
+}
 
-  .profile-toggle-information {
-    min-width: 0;
+.profile-toggle-information {
+  min-width: 0;
 
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
-  .profile-toggle-information strong {
-    color: var(--color-background-end);
+.profile-toggle-information strong {
+  color: var(--color-background-end);
 
-    font-family: var(--font-semibold);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.2;
-  }
+  font-family: var(--font-semibold);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
 
-  .profile-toggle-information small {
-    color: #68767c;
+.profile-toggle-information small {
+  color: #68767c;
 
-    font-family: var(--font-interface);
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.35;
-  }
+  font-family: var(--font-interface);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+}
 
-  /* ==============================
+/* ==============================
    INTERRUPTORES
 ================================ */
 
-  .profile-switch {
-    position: relative;
+.profile-switch {
+  position: relative;
 
-    width: 48px;
-    height: 28px;
+  width: 48px;
+  height: 28px;
 
-    flex-shrink: 0;
-  }
+  flex-shrink: 0;
+}
 
-  .profile-switch input {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
+.profile-switch input {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
 
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 
-    margin: 0;
+  margin: 0;
 
-    opacity: 0;
+  opacity: 0;
 
-    cursor: pointer;
-  }
+  cursor: pointer;
+}
 
-  .profile-switch-control {
-    position: absolute;
-    inset: 0;
+.profile-switch-control {
+  position: absolute;
+  inset: 0;
 
-    border-radius: 20px;
+  border-radius: 20px;
 
-    background-color: #b9c1c4;
+  background-color: #b9c1c4;
 
-    pointer-events: none;
+  pointer-events: none;
 
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.18);
 
-    transition:
-      background-color 0.2s ease,
-      opacity 0.2s ease;
-  }
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
 
-  .profile-switch-control::after {
-    content: "";
+.profile-switch-control::after {
+  content: "";
 
-    position: absolute;
-    top: 4px;
-    left: 4px;
+  position: absolute;
+  top: 4px;
+  left: 4px;
 
-    width: 20px;
-    height: 20px;
+  width: 20px;
+  height: 20px;
 
-    border-radius: 50%;
+  border-radius: 50%;
 
-    background-color: #ffffff;
+  background-color: #ffffff;
 
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22);
 
-    transition: transform 0.2s ease;
-  }
+  transition: transform 0.2s ease;
+}
 
-  .profile-switch input:checked + .profile-switch-control {
-    background-color: var(--color-primary);
-  }
+.profile-switch input:checked + .profile-switch-control {
+  background-color: var(--color-primary);
+}
 
-  .profile-switch input:checked + .profile-switch-control::after {
-    transform: translateX(20px);
-  }
+.profile-switch input:checked + .profile-switch-control::after {
+  transform: translateX(20px);
+}
 
-  .profile-switch input:focus-visible + .profile-switch-control {
-    outline: 3px solid var(--color-background-start);
-    outline-offset: 3px;
-  }
+.profile-switch input:focus-visible + .profile-switch-control {
+  outline: 3px solid var(--color-background-start);
+  outline-offset: 3px;
+}
 
-  .profile-switch input:disabled {
-    cursor: not-allowed;
-  }
+.profile-switch input:disabled {
+  cursor: not-allowed;
+}
 
-  .profile-switch input:disabled + .profile-switch-control {
-    opacity: 0.4;
-  }
+.profile-switch input:disabled + .profile-switch-control {
+  opacity: 0.4;
+}
 
-  /* ==============================
+/* ==============================
    LOCALIZAÇÃO
 ================================ */
 
-  .profile-location-area {
-    width: 100%;
+.profile-location-area {
+  width: 100%;
 
-    margin-top: 15px;
-  }
+  margin-top: 15px;
+}
 
-  .profile-location-button {
-    min-height: 46px;
+.profile-location-button {
+  min-height: 46px;
 
-    margin: 0;
+  margin: 0;
 
-    border-radius: 14px;
+  border-radius: 14px;
 
-    background-color: var(--color-background-start);
-    color: #ffffff;
+  background-color: var(--color-background-start);
+  color: #ffffff;
 
-    font-size: 16px;
+  font-size: 16px;
 
-    box-shadow: 0 3px 6px rgba(8, 38, 50, 0.18);
-  }
+  box-shadow: 0 3px 6px rgba(8, 38, 50, 0.18);
+}
 
-  .profile-location-button:hover {
-    transform: scale(1.03);
-  }
+.profile-location-button:hover {
+  transform: scale(1.03);
+}
 
-  .profile-location-button:active {
-    transform: scale(0.97);
-  }
+.profile-location-button:active {
+  transform: scale(0.97);
+}
 
-  .profile-location-button:disabled {
-    background-color: #c1c8ca;
-    color: #f7f7f7;
+.profile-location-button:disabled {
+  background-color: #c1c8ca;
+  color: #f7f7f7;
 
-    box-shadow: none;
-  }
+  box-shadow: none;
+}
 
-  .profile-location-status {
-    margin-top: 10px;
+.profile-location-status {
+  margin-top: 10px;
 
-    color: #5f6d73;
+  color: #5f6d73;
 
-    font-family: var(--font-interface);
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.4;
+  font-family: var(--font-interface);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
 
-    text-align: center;
-  }
+  text-align: center;
+}
 
-  .profile-location-status.is-success {
-    color: #187a55;
+.profile-location-status.is-success {
+  color: #187a55;
 
-    font-family: var(--font-semibold);
-    font-weight: 600;
-  }
+  font-family: var(--font-semibold);
+  font-weight: 600;
+}
 
-  .profile-location-status.is-error {
-    color: #a42626;
+.profile-location-status.is-error {
+  color: #a42626;
 
-    font-family: var(--font-semibold);
-    font-weight: 600;
-  }
+  font-family: var(--font-semibold);
+  font-weight: 600;
+}
 
-  /* ==============================
+/* ==============================
    AVISO DE PRIVACIDADE
 ================================ */
 
-  .profile-map-privacy-note {
-    margin-top: 14px;
-    padding-top: 13px;
+.profile-map-privacy-note {
+  margin-top: 14px;
+  padding-top: 13px;
 
-    border-top: 1px solid #dfe5e7;
+  border-top: 1px solid #dfe5e7;
 
-    color: #647278;
+  color: #647278;
 
-    font-family: var(--font-interface);
-    font-size: 11px;
-    font-weight: 400;
-    line-height: 1.4;
+  font-family: var(--font-interface);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
 
-    text-align: center;
-  }
+  text-align: center;
+}
 
-  /* ==============================
+/* ==============================
    TELAS MENORES
 ================================ */
 
-  @media (max-width: 360px) {
-    .profile-map-settings {
-      padding: 15px;
-    }
-
-    .profile-map-settings-title {
-      font-size: 17px;
-    }
-
-    .profile-map-settings-description {
-      font-size: 12px;
-    }
-
-    .profile-toggle-row {
-      min-height: 70px;
-
-      padding: 12px;
-
-      grid-template-columns: minmax(0, 1fr) 46px;
-      gap: 10px;
-    }
-
-    .profile-toggle-information strong {
-      font-size: 14px;
-    }
-
-    .profile-toggle-information small {
-      font-size: 11px;
-    }
-
-    .profile-switch {
-      width: 46px;
-      height: 27px;
-    }
-
-    .profile-switch-control::after {
-      width: 19px;
-      height: 19px;
-    }
-
-    .profile-switch input:checked + .profile-switch-control::after {
-      transform: translateX(19px);
-    }
-
-    .profile-location-button {
-      font-size: 15px;
-    }
+@media (max-width: 360px) {
+  .profile-map-settings {
+    padding: 15px;
   }
 
-  /* ==============================
-   LINHAS DOS CONTROLES
-================================ */
+  .profile-map-settings-title {
+    font-size: 17px;
+  }
+
+  .profile-map-settings-description {
+    font-size: 12px;
+  }
 
   .profile-toggle-row {
-    width: 100%;
-    min-height: 57px;
+    min-height: 70px;
 
-    padding: 9px 3px;
+    padding: 12px;
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-
-    border-top: 1px solid #dce2e4;
-
-    cursor: pointer;
-  }
-
-  .profile-toggle-information {
-    min-width: 0;
-
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    grid-template-columns: minmax(0, 1fr) 46px;
+    gap: 10px;
   }
 
   .profile-toggle-information strong {
-    color: var(--color-background-end);
-
-    font-family: var(--font-semibold);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.2;
+    font-size: 14px;
   }
 
   .profile-toggle-information small {
-    color: #66747a;
-
-    font-family: var(--font-interface);
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.3;
+    font-size: 11px;
   }
-
-  /* ==============================
-   INTERRUPTORES
-================================ */
 
   .profile-switch {
-    position: relative;
-
-    width: 48px;
-    height: 28px;
-
-    flex-shrink: 0;
-  }
-
-  .profile-switch input {
-    position: absolute;
-
-    width: 1px;
-    height: 1px;
-
-    overflow: hidden;
-
-    opacity: 0;
-  }
-
-  .profile-switch-control {
-    position: absolute;
-    inset: 0;
-
-    border-radius: 20px;
-
-    background-color: #b9c1c4;
-
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.18);
-
-    transition:
-      background-color 0.2s ease,
-      opacity 0.2s ease;
+    width: 46px;
+    height: 27px;
   }
 
   .profile-switch-control::after {
-    content: "";
-
-    position: absolute;
-    top: 4px;
-    left: 4px;
-
-    width: 20px;
-    height: 20px;
-
-    border-radius: 50%;
-
-    background-color: #ffffff;
-
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-
-    transition: transform 0.2s ease;
-  }
-
-  .profile-switch input:checked + .profile-switch-control {
-    background-color: var(--color-primary);
+    width: 19px;
+    height: 19px;
   }
 
   .profile-switch input:checked + .profile-switch-control::after {
-    transform: translateX(20px);
+    transform: translateX(19px);
   }
 
-  .profile-switch input:focus-visible + .profile-switch-control {
-    outline: 3px solid var(--color-background-start);
-    outline-offset: 3px;
+  .profile-location-button {
+    font-size: 15px;
   }
+}
 
-  .profile-switch input:disabled + .profile-switch-control {
-    cursor: not-allowed;
+/* ==============================
+   LINHAS DOS CONTROLES
+================================ */
 
-    opacity: 0.45;
-  }
+.profile-toggle-row {
+  width: 100%;
+  min-height: 57px;
 
-  /* ==============================
+  padding: 9px 3px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  border-top: 1px solid #dce2e4;
+
+  cursor: pointer;
+}
+
+.profile-toggle-information {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-toggle-information strong {
+  color: var(--color-background-end);
+
+  font-family: var(--font-semibold);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.profile-toggle-information small {
+  color: #66747a;
+
+  font-family: var(--font-interface);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+/* ==============================
+   INTERRUPTORES
+================================ */
+
+.profile-switch {
+  position: relative;
+
+  width: 48px;
+  height: 28px;
+
+  flex-shrink: 0;
+}
+
+.profile-switch input {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  overflow: hidden;
+
+  opacity: 0;
+}
+
+.profile-switch-control {
+  position: absolute;
+  inset: 0;
+
+  border-radius: 20px;
+
+  background-color: #b9c1c4;
+
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.18);
+
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.profile-switch-control::after {
+  content: "";
+
+  position: absolute;
+  top: 4px;
+  left: 4px;
+
+  width: 20px;
+  height: 20px;
+
+  border-radius: 50%;
+
+  background-color: #ffffff;
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+
+  transition: transform 0.2s ease;
+}
+
+.profile-switch input:checked + .profile-switch-control {
+  background-color: var(--color-primary);
+}
+
+.profile-switch input:checked + .profile-switch-control::after {
+  transform: translateX(20px);
+}
+
+.profile-switch input:focus-visible + .profile-switch-control {
+  outline: 3px solid var(--color-background-start);
+  outline-offset: 3px;
+}
+
+.profile-switch input:disabled + .profile-switch-control {
+  cursor: not-allowed;
+
+  opacity: 0.45;
+}
+
+/* ==============================
    BOTÃO DE LOCALIZAÇÃO
 ================================ */
 
-  .profile-location-button {
-    min-height: 43px;
+.profile-location-button {
+  min-height: 43px;
 
-    margin-top: 14px;
+  margin-top: 14px;
 
-    background-color: var(--color-background-start);
-    color: #ffffff;
+  background-color: var(--color-background-start);
+  color: #ffffff;
 
-    font-size: 16px;
+  font-size: 16px;
 
-    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.18);
-  }
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.18);
+}
 
-  .profile-location-button:focus-visible {
-    outline-color: var(--color-primary);
-  }
+.profile-location-button:focus-visible {
+  outline-color: var(--color-primary);
+}
 
-  /* ==============================
+/* ==============================
    STATUS DA LOCALIZAÇÃO
 ================================ */
 
-  .profile-location-status {
-    margin-top: 11px;
+.profile-location-status {
+  margin-top: 11px;
 
-    color: #5b686e;
+  color: #5b686e;
 
-    font-family: var(--font-interface);
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.35;
+  font-family: var(--font-interface);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
 
-    text-align: center;
-  }
+  text-align: center;
+}
 
-  .profile-location-status.is-success {
-    color: #187a55;
+.profile-location-status.is-success {
+  color: #187a55;
 
-    font-family: var(--font-semibold);
-    font-weight: 600;
-  }
+  font-family: var(--font-semibold);
+  font-weight: 600;
+}
 
-  .profile-location-status.is-error {
-    color: #a42626;
+.profile-location-status.is-error {
+  color: #a42626;
 
-    font-family: var(--font-semibold);
-    font-weight: 600;
-  }
+  font-family: var(--font-semibold);
+  font-weight: 600;
+}
 
-  /* ==============================
+/* ==============================
    CONTROLES EM TELAS PEQUENAS
 ================================ */
 
-  @media (max-width: 360px) {
-    .profile-map-settings {
-      padding-right: 10px;
-      padding-left: 10px;
-    }
+@media (max-width: 360px) {
+  .profile-map-settings {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
 
-    .profile-toggle-information strong {
-      font-size: 14px;
-    }
+  .profile-toggle-information strong {
+    font-size: 14px;
+  }
 
-    .profile-toggle-information small {
-      font-size: 11px;
-    }
+  .profile-toggle-information small {
+    font-size: 11px;
+  }
 
-    .profile-switch {
-      width: 44px;
-      height: 26px;
-    }
+  .profile-switch {
+    width: 44px;
+    height: 26px;
+  }
 
-    .profile-switch-control::after {
-      width: 18px;
-      height: 18px;
-    }
+  .profile-switch-control::after {
+    width: 18px;
+    height: 18px;
+  }
 
-    .profile-switch input:checked + .profile-switch-control::after {
-      transform: translateX(18px);
-    }
+  .profile-switch input:checked + .profile-switch-control::after {
+    transform: translateX(18px);
   }
 }

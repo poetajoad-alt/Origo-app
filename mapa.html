@@ -88,7 +88,6 @@
 
     <!-- Painel inferior -->
     <aside class="map-bottom-sheet" id="map-bottom-sheet" aria-hidden="true" aria-labelledby="map-sheet-title">
-
       <div class="map-sheet-handle" aria-hidden="true"></div>
 
       <button class="map-sheet-close" id="map-sheet-close" type="button" aria-label="Fechar informações">
@@ -98,7 +97,6 @@
       </button>
 
       <div class="map-sheet-heading">
-
         <span class="map-sheet-type" id="map-sheet-type">
           Jogador
         </span>
@@ -106,7 +104,6 @@
         <span class="map-sheet-availability" id="map-sheet-availability" hidden>
           Disponível agora
         </span>
-
       </div>
 
       <h2 class="map-sheet-title" id="map-sheet-title">
@@ -117,7 +114,82 @@
 
       <div class="map-sheet-details" id="map-sheet-details"></div>
 
+      <div class="map-sheet-actions" id="map-sheet-actions" hidden>
+        <button class="map-sheet-invite-button" id="map-sheet-invite-button" type="button">
+          Convidar para Jogar
+        </button>
+      </div>
     </aside>
+
+    <!-- Painel para envio de convite -->
+    <div class="invite-layer" id="invite-layer" aria-hidden="true" hidden>
+      <button class="invite-overlay" id="invite-overlay" type="button" aria-label="Fechar convite"></button>
+
+      <section class="invite-panel" role="dialog" aria-modal="true" aria-labelledby="invite-title">
+        <div class="invite-handle" aria-hidden="true"></div>
+
+        <button class="invite-close-button" id="invite-close-button" type="button" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        <span class="invite-label">
+          Convite
+        </span>
+
+        <h2 class="invite-title" id="invite-title">
+          Convidar para Jogar
+        </h2>
+
+        <p class="invite-recipient">
+          Enviar convite para
+          <strong id="invite-recipient-name">
+            Jogador
+          </strong>
+        </p>
+
+        <p class="invite-instruction">
+          Escolha uma mensagem:
+        </p>
+
+        <div class="invite-message-options" role="group" aria-label="Mensagens disponíveis">
+          <button class="invite-message-button" type="button" data-invite-message="Vamos jogar?" aria-pressed="false">
+            Vamos jogar?
+          </button>
+
+          <button class="invite-message-button" type="button" data-invite-message="Está disponível hoje?" aria-pressed="false">
+            Está disponível hoje?
+          </button>
+
+          <button class="invite-message-button" type="button" data-invite-message="Qual TCG você joga?" aria-pressed="false">
+            Qual TCG você joga?
+          </button>
+
+          <button class="invite-message-button" type="button" data-invite-message="Qual formato você prefere?" aria-pressed="false">
+            Qual formato você prefere?
+          </button>
+
+          <button class="invite-message-button" type="button" data-invite-message="Quer marcar uma partida?" aria-pressed="false">
+            Quer marcar uma partida?
+          </button>
+
+          <button class="invite-message-button" type="button" data-invite-message="Podemos trocar WhatsApp?" aria-pressed="false">
+            Podemos trocar WhatsApp?
+          </button>
+        </div>
+
+        <div class="invite-actions">
+          <button class="invite-cancel-button" id="invite-cancel-button" type="button">
+            Cancelar
+          </button>
+
+          <button class="invite-send-button" id="invite-send-button" type="button" disabled>
+            Enviar convite
+          </button>
+        </div>
+      </section>
+    </div>
 
   </main>
 

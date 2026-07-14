@@ -8,11 +8,17 @@ import { db } from "./firebase-config.js";
 import { authReady } from "./auth-guard.js";
 
 import {
+  addDoc,
   collection,
   getDocs,
   query,
+  serverTimestamp,
   where,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+const auth = getAuth();
 
 /* ==============================
    CONFIGURAÇÕES
@@ -85,6 +91,22 @@ const bottomSheetTitle = document.getElementById("map-sheet-title");
 const bottomSheetSubtitle = document.getElementById("map-sheet-subtitle");
 
 const bottomSheetDetails = document.getElementById("map-sheet-details");
+const bottomSheetActions = document.getElementById("map-sheet-actions");
+
+const inviteToPlayButton = document.getElementById("map-sheet-invite-button");
+const inviteLayer = document.getElementById("invite-layer");
+
+const inviteOverlay = document.getElementById("invite-overlay");
+
+const inviteCloseButton = document.getElementById("invite-close-button");
+
+const inviteRecipientName = document.getElementById("invite-recipient-name");
+
+const inviteMessageButtons = document.querySelectorAll("[data-invite-message]");
+
+const inviteCancelButton = document.getElementById("invite-cancel-button");
+
+const inviteSendButton = document.getElementById("invite-send-button");
 
 /* ==============================
    ESTADO
@@ -99,6 +121,12 @@ let userAccuracyCircle = null;
 let statusTimer = null;
 
 let allMapPoints = [];
+let selectedPlayerPoint = null;
+let currentUserId = "";
+
+let selectedInviteMessage = "";
+
+let inviteIsSubmitting = false;
 
 const mapLayers = {
   player: null,
@@ -586,6 +614,23 @@ function openPointDetails(point) {
   bottomSheetTitle.textContent = point.name;
 
   bottomSheetSubtitle.textContent = point.subtitle || "";
+  selectedPlayerPoint = point.type === "player" ? point : null;
+
+  if (bottomSheetActions) {
+    const isOwnProfile = point.type === "player" && point.id === currentUserId;
+
+    const shouldShowInviteButton = point.type === "player" && !isOwnProfile;
+
+    bottomSheetActions.hidden = !shouldShowInviteButton;
+
+    if (inviteToPlayButton) {
+      inviteToPlayButton.disabled = !point.available;
+
+      inviteToPlayButton.textContent = point.available
+        ? "Convidar para Jogar"
+        : "Jogador indisponível";
+    }
+  }
 
   const detailEntries = Object.entries(point.details || {}).filter(
     ([, value]) => {
@@ -617,13 +662,243 @@ function openPointDetails(point) {
 }
 
 function closePointDetails() {
+  selectedPlayerPoint = null;
+
+  if (bottomSheetActions) {
+    bottomSheetActions.hidden = true;
+  }
+
+  if (inviteToPlayButton) {
+    inviteToPlayButton.disabled = false;
+    inviteToPlayButton.textContent = "Convidar para Jogar";
+  }
+
   bottomSheet?.classList.remove("is-open");
 
   bottomSheet?.setAttribute("aria-hidden", "true");
 
   mapPage?.classList.remove("sheet-open");
 }
+/* ==============================
+   CONVITES
+================================ */
 
+function resetInvitePanel() {
+  selectedInviteMessage = "";
+
+  inviteMessageButtons.forEach((button) => {
+    button.classList.remove("is-selected");
+
+    button.setAttribute("aria-pressed", "false");
+
+    button.disabled = false;
+  });
+
+  if (inviteSendButton) {
+    inviteSendButton.disabled = true;
+    inviteSendButton.textContent = "Enviar convite";
+  }
+
+  if (inviteCancelButton) {
+    inviteCancelButton.disabled = false;
+  }
+}
+
+function openInvitePanel() {
+  if (
+    !inviteLayer ||
+    !selectedPlayerPoint ||
+    selectedPlayerPoint.type !== "player"
+  ) {
+    return;
+  }
+
+  if (!selectedPlayerPoint.available) {
+    showMapStatus("Este jogador não está disponível no momento.", 4000);
+
+    return;
+  }
+
+  if (currentUserId && selectedPlayerPoint.id === currentUserId) {
+    showMapStatus(
+      "Você não pode enviar um convite para seu próprio perfil.",
+      4000,
+    );
+
+    return;
+  }
+
+  resetInvitePanel();
+
+  if (inviteRecipientName) {
+    inviteRecipientName.textContent = selectedPlayerPoint.name;
+  }
+
+  inviteLayer.hidden = false;
+
+  inviteLayer.setAttribute("aria-hidden", "false");
+
+  window.setTimeout(() => {
+    inviteMessageButtons[0]?.focus();
+  }, 50);
+}
+
+function closeInvitePanel({ restoreFocus = true } = {}) {
+  if (!inviteLayer || inviteIsSubmitting) {
+    return;
+  }
+
+  inviteLayer.hidden = true;
+
+  inviteLayer.setAttribute("aria-hidden", "true");
+
+  resetInvitePanel();
+
+  if (restoreFocus) {
+    inviteToPlayButton?.focus();
+  }
+}
+
+function selectInviteMessage(button) {
+  if (!button || inviteIsSubmitting) {
+    return;
+  }
+
+  selectedInviteMessage = button.dataset.inviteMessage || "";
+
+  inviteMessageButtons.forEach((otherButton) => {
+    const isSelected = otherButton === button;
+
+    otherButton.classList.toggle("is-selected", isSelected);
+
+    otherButton.setAttribute("aria-pressed", String(isSelected));
+  });
+
+  if (inviteSendButton) {
+    inviteSendButton.disabled = !selectedInviteMessage;
+  }
+}
+
+async function pendingInviteExists(senderId, recipientId) {
+  const sentInvitesQuery = query(
+    collection(db, "convites"),
+
+    where("remetenteId", "==", senderId),
+  );
+
+  const snapshot = await getDocs(sentInvitesQuery);
+
+  return snapshot.docs.some((documentSnapshot) => {
+    const data = documentSnapshot.data();
+
+    return data.destinatarioId === recipientId && data.status === "pendente";
+  });
+}
+
+function setInviteSubmitting(isSubmitting) {
+  inviteIsSubmitting = isSubmitting;
+
+  inviteMessageButtons.forEach((button) => {
+    button.disabled = isSubmitting;
+  });
+
+  if (inviteCancelButton) {
+    inviteCancelButton.disabled = isSubmitting;
+  }
+
+  if (inviteSendButton) {
+    inviteSendButton.disabled = isSubmitting || !selectedInviteMessage;
+
+    inviteSendButton.textContent = isSubmitting
+      ? "Enviando..."
+      : "Enviar convite";
+  }
+}
+
+async function sendInvite() {
+  if (inviteIsSubmitting || !selectedPlayerPoint || !selectedInviteMessage) {
+    return;
+  }
+
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    showMapStatus("Não foi possível identificar sua conta.", 5000);
+
+    return;
+  }
+
+  if (selectedPlayerPoint.id === currentUser.uid) {
+    showMapStatus("Você não pode convidar seu próprio perfil.", 5000);
+
+    return;
+  }
+
+  setInviteSubmitting(true);
+
+  try {
+    const alreadyExists = await pendingInviteExists(
+      currentUser.uid,
+      selectedPlayerPoint.id,
+    );
+
+    if (alreadyExists) {
+      setInviteSubmitting(false);
+
+      closeInvitePanel({
+        restoreFocus: false,
+      });
+
+      showMapStatus(
+        `Você já possui um convite pendente para ${selectedPlayerPoint.name}.`,
+        5000,
+      );
+
+      return;
+    }
+    const recipientName = selectedPlayerPoint.name;
+    await addDoc(collection(db, "convites"), {
+      remetenteId: currentUser.uid,
+
+      destinatarioId: selectedPlayerPoint.id,
+
+      tipo: "jogar",
+
+      mensagem: selectedInviteMessage,
+
+      status: "pendente",
+
+      criadoEm: serverTimestamp(),
+
+      atualizadoEm: serverTimestamp(),
+    });
+
+    setInviteSubmitting(false);
+
+    closeInvitePanel({
+      restoreFocus: false,
+    });
+
+    closePointDetails();
+
+    showMapStatus(`Convite enviado para ${recipientName}.`, 5000);
+  } catch (error) {
+    console.error("[Convites] Não foi possível enviar o convite:", error);
+
+    setInviteSubmitting(false);
+
+    const errorMessages = {
+      "permission-denied": "Você não tem permissão para enviar este convite.",
+
+      unavailable: "O serviço está temporariamente indisponível.",
+    };
+
+    showMapStatus(
+      errorMessages[error?.code] || "Não foi possível enviar o convite.",
+      5000,
+    );
+  }
+}
 /* ==============================
    ADICIONAR PONTOS
 ================================ */
@@ -835,9 +1110,33 @@ function initializeInterfaceEvents() {
   locateUserButton?.addEventListener("click", locateUser);
 
   bottomSheetCloseButton?.addEventListener("click", closePointDetails);
+  inviteToPlayButton?.addEventListener("click", openInvitePanel);
+
+  inviteCloseButton?.addEventListener("click", closeInvitePanel);
+
+  inviteCancelButton?.addEventListener("click", closeInvitePanel);
+
+  inviteOverlay?.addEventListener("click", closeInvitePanel);
+
+  inviteMessageButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      selectInviteMessage(button);
+    });
+  });
+
+  inviteSendButton?.addEventListener("click", sendInvite);
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && bottomSheet?.classList.contains("is-open")) {
+    if (event.key !== "Escape") {
+      return;
+    }
+
+    if (inviteLayer && !inviteLayer.hidden) {
+      closeInvitePanel();
+      return;
+    }
+
+    if (bottomSheet?.classList.contains("is-open")) {
       closePointDetails();
     }
   });
@@ -937,7 +1236,9 @@ async function loadMapPoints() {
 
 async function initializeMapPage() {
   try {
-    await authReady;
+    const authenticatedUser = await authReady;
+
+    currentUserId = authenticatedUser?.uid || auth.currentUser?.uid || "";
 
     initializeLeafletMap();
 

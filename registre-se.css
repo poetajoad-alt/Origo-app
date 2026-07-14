@@ -308,8 +308,10 @@ body {
 }
 
 .google-icon {
-  position: absolute;
-  left: 24px;
+  position: static;
+
+  width: 21px;
+  height: 21px;
 
   flex-shrink: 0;
 }
@@ -337,10 +339,6 @@ body {
 
   .app-button-google {
     font-size: 14px;
-  }
-
-  .google-icon {
-    left: 18px;
   }
 }
 
@@ -420,5 +418,224 @@ body {
 
     transform: none;
     filter: none;
+  }
+  /* ==============================
+   AJUSTE FIGMA — 402 × 874
+   TÍTULO REGISTRE-SE
+================================ */
+
+  .register-page {
+    /* 90 px em uma altura de 874 px */
+    padding-top: max(10.2975dvh, env(safe-area-inset-top));
+  }
+
+  .register-title {
+    /*
+    A página já possui 9 px de padding lateral.
+    Este cálculo completa a distância até os
+    30 px definidos no Figma.
+  */
+    margin-top: 0;
+
+    margin-right: calc(min(7.4627vw, 32.09px) - 9px);
+
+    /* 31 px em uma altura de 874 px */
+    margin-bottom: 3.5469dvh;
+
+    margin-left: calc(min(7.4627vw, 32.09px) - 9px);
+  }
+  /* ==============================
+   AJUSTE FIGMA — 402 × 874
+   VERSÃO SEGURA
+================================ */
+
+  .register-page {
+    width: 100%;
+    max-width: 402px;
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    margin: 0 auto;
+
+    /* 90 px de 874 px */
+    padding-top: max(10.2975dvh, env(safe-area-inset-top));
+
+    /*
+    21 px de cada lado no frame
+    de 402 px.
+  */
+    padding-right: 5.2239%;
+    padding-left: 5.2239%;
+
+    padding-bottom: max(21px, env(safe-area-inset-bottom));
+
+    display: block;
+  }
+
+  /* ==============================
+   TÍTULO
+================================ */
+
+  .register-title {
+    /*
+    O container começa em 21 px.
+    Para o título ficar em 30 px,
+    acrescentamos 9 px.
+  */
+    margin-top: 0;
+    margin-right: 9px;
+    margin-bottom: 31px;
+    margin-left: 9px;
+  }
+
+  /* ==============================
+   CONTAINER BRANCO
+================================ */
+
+  .register-card {
+    width: 100%;
+
+    /*
+    Não fixamos 657 px ainda,
+    pois faltam as medidas verticais
+    dos termos, divisor e botões.
+  */
+    height: auto;
+    min-height: 0;
+
+    margin: 0;
+
+    padding: 22px 0 25px;
+
+    border-radius: 15px;
+  }
+
+  .register-form {
+    width: 100%;
+
+    height: auto;
+    min-height: 0;
+
+    display: block;
+  }
+
+  /* ==============================
+   CAMPOS
+================================ */
+
+  .form-fields {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    /*
+    Input até o próximo tópico.
+  */
+    gap: 20px;
+  }
+
+  .form-fields + .form-group {
+    margin-top: 20px;
+  }
+
+  .register-form > .form-group + .form-group {
+    margin-top: 20px;
+  }
+
+  .form-group {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    /*
+    Tópico até o input.
+  */
+    gap: 5px;
+  }
+
+  /*
+  320 px dentro do container
+  de 360 px.
+*/
+
+  .form-group label,
+  .form-group input {
+    width: 88.8889%;
+
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .form-group input {
+    height: 40px;
+    min-height: 40px;
+
+    padding: 7px 12px;
+
+    border-radius: 20px;
+  }
+
+  /* ==============================
+   TERMOS
+================================ */
+
+  .terms-field {
+    width: 88.8889%;
+
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  /* ==============================
+   BOTÃO REGISTRE-SE
+================================ */
+
+  .app-button-primary {
+    /*
+    344 px dentro de 360 px.
+    Isso gera 8 px de cada lado.
+  */
+    width: 95.5556%;
+
+    height: 60px;
+    min-height: 60px;
+
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  /* ==============================
+   BOTÃO GOOGLE
+================================ */
+
+  .app-button-google {
+    /*
+    319 px dentro de 360 px.
+  */
+    width: 88.6111%;
+
+    height: 44px;
+    min-height: 44px;
+
+    margin-right: auto;
+    margin-left: auto;
+  }
+  .app-button-google {
+    padding: 0 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+  }
+
+  .app-button-google span {
+    display: block;
+
+    line-height: 1;
+    white-space: nowrap;
   }
 }
