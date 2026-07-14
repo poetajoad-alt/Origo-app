@@ -38,6 +38,9 @@ const activeConnectionsList = document.getElementById(
 const activeConnectionsCount = document.getElementById(
   "active-connections-count",
 );
+const connectionFilterButtons = document.querySelectorAll(
+  "[data-connection-filter]",
+);
 
 /* ==============================
    ESTADO
@@ -51,6 +54,7 @@ let activeConnections = [];
 
 let actionInProgress = false;
 let classificationInProgress = false;
+let activeConnectionFilter = "all";
 
 /* ==============================
    SEGURANÇA
@@ -423,7 +427,41 @@ function renderReceivedInvites() {
     })
     .join("");
 }
+/* ==============================
+   FILTROS DAS CONEXÕES
+================================ */
 
+function getFilteredConnections() {
+  if (activeConnectionFilter === "all") {
+    return activeConnections;
+  }
+
+  return activeConnections.filter((connection) => {
+    return connection.classification === activeConnectionFilter;
+  });
+}
+
+function updateConnectionFilterButtons() {
+  connectionFilterButtons.forEach((button) => {
+    const isActive = button.dataset.connectionFilter === activeConnectionFilter;
+
+    button.classList.toggle("is-active", isActive);
+
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
+function getEmptyConnectionsMessage() {
+  const messages = {
+    all: "Suas conexões aceitas aparecerão aqui.",
+
+    amigo: "Nenhuma conexão foi classificada como amigo.",
+
+    rival: "Nenhuma conexão foi classificada como rival.",
+  };
+
+  return messages[activeConnectionFilter] || messages.all;
+}
 /* ==============================
    RENDERIZAR CONEXÕES
 ================================ */
@@ -437,17 +475,21 @@ function renderActiveConnections() {
     return;
   }
 
-  if (!activeConnections.length) {
+  updateConnectionFilterButtons();
+
+  const filteredConnections = getFilteredConnections();
+
+  if (!filteredConnections.length) {
     activeConnectionsList.innerHTML = `
       <p class="connections-empty">
-        Suas conexões aceitas aparecerão aqui.
+        ${escapeHTML(getEmptyConnectionsMessage())}
       </p>
     `;
 
     return;
   }
 
-  activeConnectionsList.innerHTML = activeConnections
+  activeConnectionsList.innerHTML = filteredConnections
     .map((connection) => {
       const profile = connection.otherProfile || {};
 
@@ -534,6 +576,54 @@ function renderActiveConnections() {
     .join("");
 }
 /* ==============================
+   PREPARAÇÃO DAS PARTIDAS
+================================ */
+
+function inviteHasCompleteMatchDetails(invitation) {
+  if (!invitation) {
+    return false;
+  }
+
+  const validModality = ["presencial", "online"].includes(
+    invitation.modalidade,
+  );
+
+  const validTcg =
+    typeof invitation.tcg === "string" && invitation.tcg.trim().length >= 2;
+
+  const validFormat =
+    typeof invitation.formato === "string" &&
+    invitation.formato.trim().length >= 2;
+
+  const validDateTime =
+    invitation.dataHoraProposta &&
+    typeof invitation.dataHoraProposta.toDate === "function";
+
+  const validLocation =
+    invitation.modalidade === "online"
+      ? invitation.local === ""
+      : typeof invitation.local === "string" &&
+        invitation.local.trim().length >= 2;
+
+  return (
+    validModality && validTcg && validFormat && validDateTime && validLocation
+  );
+}
+
+function createSecureVideoRoomId() {
+  const randomValues = new Uint32Array(4);
+
+  window.crypto.getRandomValues(randomValues);
+
+  const randomCode = Array.from(randomValues)
+    .map((value) => {
+      return value.toString(16).padStart(8, "0");
+    })
+    .join("");
+
+  return `origo-${randomCode}`;
+}
+/* ==============================
    AÇÕES DOS CONVITES
 ================================ */
 
@@ -597,6 +687,16 @@ async function respondToInvite(inviteId, action) {
       const connectionId = participants.join("__");
 
       const connectionReference = doc(db, "conexoes", connectionId);
+      const hasCompleteMatchDetails = inviteHasCompleteMatchDetails(invitation);
+
+      const matchReference = hasCompleteMatchDetails
+        ? doc(db, "partidas", inviteId)
+        : null;
+
+      const videoRoomId =
+        hasCompleteMatchDetails && invitation.modalidade === "online"
+          ? createSecureVideoRoomId()
+          : "";
 
       batch.update(inviteReference, {
         status: "aceito",
@@ -619,6 +719,34 @@ async function respondToInvite(inviteId, action) {
           merge: true,
         },
       );
+      if (matchReference) {
+        batch.set(matchReference, {
+          participantes: participants,
+
+          conviteId: inviteId,
+
+          modalidade: invitation.modalidade,
+
+          tcg: invitation.tcg.trim(),
+
+          formato: invitation.formato.trim(),
+
+          dataHora: invitation.dataHoraProposta,
+
+          local:
+            invitation.modalidade === "presencial"
+              ? invitation.local.trim()
+              : "",
+
+          salaId: videoRoomId,
+
+          status: "confirmada",
+
+          criadoEm: serverTimestamp(),
+
+          atualizadoEm: serverTimestamp(),
+        });
+      }
     } else {
       batch.update(inviteReference, {
         status: "recusado",
@@ -780,6 +908,19 @@ activeConnectionsList?.addEventListener("click", (event) => {
   }
 
   saveConnectionClassification(connectionId, classification);
+});
+connectionFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const selectedFilter = button.dataset.connectionFilter || "";
+
+    if (!["all", "amigo", "rival"].includes(selectedFilter)) {
+      return;
+    }
+
+    activeConnectionFilter = selectedFilter;
+
+    renderActiveConnections();
+  });
 });
 /* ==============================
    CARREGAMENTO GERAL

@@ -563,6 +563,69 @@ body {
   outline-offset: 2px;
 }
 /* ==============================
+   FILTROS DAS CONEXÕES
+================================ */
+
+.connections-filters {
+  width: 100%;
+
+  margin-bottom: 14px;
+
+  padding: 4px;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+
+  border-radius: 18px;
+
+  background-color: #dfe5e6;
+}
+
+.connections-filter-button {
+  min-height: 39px;
+
+  padding: 7px 10px;
+
+  border: none;
+  border-radius: 14px;
+
+  background-color: transparent;
+  color: var(--color-soft-text);
+
+  font-family: var(--font-semibold);
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.connections-filter-button:hover {
+  transform: scale(1.02);
+}
+
+.connections-filter-button:active {
+  transform: scale(0.96);
+}
+
+.connections-filter-button.is-active {
+  background-color: var(--color-white);
+  color: var(--color-background);
+
+  box-shadow: 0 2px 7px rgba(8, 38, 50, 0.14);
+}
+
+.connections-filter-button:focus-visible {
+  outline: 3px solid var(--color-yellow);
+  outline-offset: 2px;
+}
+/* ==============================
    REDUÇÃO DE MOVIMENTO
 ================================ */
 

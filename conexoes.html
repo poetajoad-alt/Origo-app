@@ -86,7 +86,19 @@
           </span>
 
         </div>
+        <div class="connections-filters" role="group" aria-label="Filtrar conexões">
+          <button class="connections-filter-button is-active" type="button" data-connection-filter="all" aria-pressed="true">
+            Todos
+          </button>
 
+          <button class="connections-filter-button" type="button" data-connection-filter="amigo" aria-pressed="false">
+            Amigos
+          </button>
+
+          <button class="connections-filter-button" type="button" data-connection-filter="rival" aria-pressed="false">
+            Rivais
+          </button>
+        </div>
         <div class="connection-list" id="active-connections-list">
           <p class="connections-loading">
             Carregando conexões...
