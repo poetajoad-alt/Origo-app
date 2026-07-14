@@ -35,34 +35,6 @@ const DEFAULT_MAP_CENTER = [-23.4543, -46.5337];
 const DEFAULT_MAP_ZOOM = 13;
 
 /* ==============================
-   LOJA TEMPORÁRIA
-================================ */
-
-const temporaryMapPoints = [
-  {
-    id: "store-demo-1",
-
-    type: "store",
-
-    name: "Loja demonstrativa",
-
-    latitude: -23.4572,
-
-    longitude: -46.5255,
-
-    available: false,
-
-    subtitle: "Exemplo de loja parceira da Origo",
-
-    details: {
-      Cidade: "Guarulhos, SP",
-      Horário: "10h às 20h",
-      TCGs: "Pokémon, Magic e Yu-Gi-Oh!",
-    },
-  },
-];
-
-/* ==============================
    ELEMENTOS
 ================================ */
 
@@ -572,7 +544,148 @@ async function loadActiveEvents() {
 
   return snapshot.docs.map(normalizeEventDocument).filter(Boolean);
 }
+/* ==============================
+   LOJAS DO FIREBASE
+================================ */
 
+function normalizeStoreDocument(documentSnapshot) {
+  const data = documentSnapshot.data();
+
+  const latitude = Number(data.latitude);
+  const longitude = Number(data.longitude);
+
+  const name = typeof data.nome === "string" ? data.nome.trim() : "";
+
+  if (
+    data.ativo !== true ||
+    !name ||
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude)
+  ) {
+    return null;
+  }
+
+  const address = typeof data.endereco === "string" ? data.endereco.trim() : "";
+
+  const neighborhood =
+    typeof data.bairro === "string" ? data.bairro.trim() : "";
+
+  const city = typeof data.cidade === "string" ? data.cidade.trim() : "";
+
+  const state = typeof data.estado === "string" ? data.estado.trim() : "";
+
+  const phone = typeof data.telefone === "string" ? data.telefone.trim() : "";
+
+  const whatsapp =
+    typeof data.whatsapp === "string" ? data.whatsapp.trim() : "";
+
+  const instagram =
+    typeof data.instagram === "string" ? data.instagram.trim() : "";
+
+  const website = typeof data.site === "string" ? data.site.trim() : "";
+
+  const description =
+    typeof data.descricao === "string" ? data.descricao.trim() : "";
+
+  const image = typeof data.imagem === "string" ? data.imagem.trim() : "";
+
+  const tcgs = Array.isArray(data.tcgs)
+    ? data.tcgs
+        .filter((tcg) => {
+          return typeof tcg === "string";
+        })
+        .map((tcg) => {
+          return tcg.trim();
+        })
+        .filter(Boolean)
+    : [];
+
+  const cityState = [city, state].filter(Boolean).join(" - ");
+
+  const details = {};
+
+  if (address) {
+    details.Endereço = address;
+  }
+
+  if (neighborhood) {
+    details.Bairro = neighborhood;
+  }
+
+  if (cityState) {
+    details.Cidade = cityState;
+  }
+
+  if (tcgs.length) {
+    details.TCGs = tcgs.join(", ");
+  }
+
+  details.Mesas =
+    data.possuiMesas === true ? "Disponíveis para jogar" : "Não informado";
+
+  details.Eventos =
+    data.realizaEventos === true ? "A loja realiza eventos" : "Não informado";
+
+  if (phone) {
+    details.Telefone = phone;
+  }
+
+  if (whatsapp) {
+    details.WhatsApp = whatsapp;
+  }
+
+  if (instagram) {
+    details.Instagram = instagram;
+  }
+
+  if (website) {
+    details.Site = website;
+  }
+
+  if (description) {
+    details.Descrição = description;
+  }
+
+  return {
+    id: documentSnapshot.id,
+
+    type: "store",
+
+    name,
+
+    latitude,
+    longitude,
+
+    available: false,
+
+    image,
+
+    partner: data.parceira === true,
+
+    subtitle:
+      data.parceira === true
+        ? cityState
+          ? `Parceira Origo • ${cityState}`
+          : "Loja parceira da Origo"
+        : cityState || "Loja da comunidade Origo",
+
+    details,
+  };
+}
+
+async function loadActiveStores() {
+  await authReady;
+
+  const activeStoresQuery = query(
+    collection(db, "lojas"),
+
+    where("ativo", "==", true),
+  );
+
+  const snapshot = await getDocs(activeStoresQuery);
+
+  return snapshot.docs.map(normalizeStoreDocument).filter(Boolean);
+}
 /* ==============================
    DETALHES
 ================================ */
@@ -1502,29 +1615,55 @@ function initializeLeafletMap() {
 async function loadMapPoints() {
   showMapStatus("Carregando comunidade...", 0);
 
-  let publicPlayers = [];
-  let activeEvents = [];
+  const results = await Promise.allSettled([
+    loadPublicPlayers(),
+    loadActiveStores(),
+    loadActiveEvents(),
+  ]);
 
-  try {
-    publicPlayers = await loadPublicPlayers();
-  } catch (error) {
+  const publicPlayers =
+    results[0].status === "fulfilled" ? results[0].value : [];
+
+  const activeStores =
+    results[1].status === "fulfilled" ? results[1].value : [];
+
+  const activeEvents =
+    results[2].status === "fulfilled" ? results[2].value : [];
+
+  if (results[0].status === "rejected") {
     console.error(
-      "[Mapa] Não foi possível carregar os perfis públicos:",
-      error,
+      "[Mapa] Não foi possível carregar os jogadores:",
+      results[0].reason,
     );
   }
 
-  try {
-    activeEvents = await loadActiveEvents();
-  } catch (error) {
-    console.error("[Mapa] Não foi possível carregar os eventos:", error);
+  if (results[1].status === "rejected") {
+    console.error(
+      "[Mapa] Não foi possível carregar as lojas:",
+      results[1].reason,
+    );
   }
 
-  allMapPoints = [...publicPlayers, ...activeEvents, ...temporaryMapPoints];
+  if (results[2].status === "rejected") {
+    console.error(
+      "[Mapa] Não foi possível carregar os eventos:",
+      results[2].reason,
+    );
+  }
+
+  /*
+   * Evita marcadores duplicados caso o mapa
+   * seja carregado novamente futuramente.
+   */
+  Object.values(mapLayers).forEach((layer) => {
+    layer?.clearLayers();
+  });
+
+  allMapPoints = [...publicPlayers, ...activeStores, ...activeEvents];
 
   allMapPoints.forEach(addPointToMap);
 
-  showMapFilter("all");
+  showMapFilter(currentFilter || "all");
 
   fitMapToPoints(allMapPoints);
 
@@ -1532,11 +1671,18 @@ async function loadMapPoints() {
     publicPlayers.length === 1 ? "" : "es"
   }`;
 
+  const storeText = `${activeStores.length} loja${
+    activeStores.length === 1 ? "" : "s"
+  }`;
+
   const eventText = `${activeEvents.length} evento${
     activeEvents.length === 1 ? "" : "s"
   }`;
 
-  showMapStatus(`${playerText} e ${eventText} encontrados.`, 5000);
+  showMapStatus(
+    `${playerText}, ${storeText} e ${eventText} encontrados.`,
+    5000,
+  );
 }
 
 /* ==============================
