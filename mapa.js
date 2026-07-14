@@ -705,16 +705,26 @@ function resetInvitePanel() {
 }
 
 function openInvitePanel() {
-  if (
-    !inviteLayer ||
-    !selectedPlayerPoint ||
-    selectedPlayerPoint.type !== "player"
-  ) {
+  if (!selectedPlayerPoint) {
+    showMapStatus("Nenhum jogador foi selecionado.", 5000);
+
+    return;
+  }
+
+  if (selectedPlayerPoint.type !== "player") {
+    showMapStatus("Este ponto não representa um jogador.", 5000);
+
+    return;
+  }
+
+  if (!inviteLayer) {
+    showMapStatus("O painel de convite não foi encontrado no mapa.html.", 7000);
+
     return;
   }
 
   if (!selectedPlayerPoint.available) {
-    showMapStatus("Este jogador não está disponível no momento.", 4000);
+    showMapStatus("Este jogador não está disponível no momento.", 5000);
 
     return;
   }
@@ -722,7 +732,7 @@ function openInvitePanel() {
   if (currentUserId && selectedPlayerPoint.id === currentUserId) {
     showMapStatus(
       "Você não pode enviar um convite para seu próprio perfil.",
-      4000,
+      5000,
     );
 
     return;
