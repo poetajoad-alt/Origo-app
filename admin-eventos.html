@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#082632">
+
+  <title>Origo | Administração de eventos</title>
+
+  <link rel="stylesheet" href="admin-eventos.css">
+
+  <script type="module" src="auth-guard.js"></script>
+</head>
+
+<body>
+  <div class="admin-access-loading" id="admin-access-loading">
+    <div class="admin-access-spinner"></div>
+
+    <p>
+      Verificando acesso administrativo...
+    </p>
+  </div>
+
+  <div class="admin-page" id="admin-page" hidden>
+    <header class="admin-header">
+      <a class="admin-back-button" href="principal.html" aria-label="Voltar para a página principal">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+
+      <div class="admin-header-information">
+        <span class="admin-header-label">
+          Painel administrativo
+        </span>
+
+        <h1>
+          Eventos
+        </h1>
+      </div>
+
+      <button class="admin-header-action" id="new-event-button" type="button">
+        Novo
+      </button>
+    </header>
+
+    <main class="admin-content">
+      <section class="admin-form-section" id="admin-form-section" aria-labelledby="admin-form-title">
+        <div class="admin-section-heading">
+          <div>
+            <span class="admin-section-eyebrow">
+              Cadastro
+            </span>
+
+            <h2 id="admin-form-title">
+              Novo evento
+            </h2>
+          </div>
+
+          <button class="admin-close-form-button" id="cancel-edit-button" type="button" hidden>
+            Cancelar edição
+          </button>
+        </div>
+
+        <form class="admin-event-form" id="admin-event-form" novalidate>
+          <input id="event-id" type="hidden">
+
+          <div class="admin-form-group">
+            <label for="event-title">
+              Título do evento
+            </label>
+
+            <input id="event-title" type="text" maxlength="120" placeholder="Ex.: Liga Pokémon Origo" required>
+          </div>
+
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label for="event-category">
+                Categoria
+              </label>
+
+              <select id="event-category" required>
+                <option value="">
+                  Selecione
+                </option>
+
+                <option value="Pokémon">
+                  Pokémon
+                </option>
+
+                <option value="Magic">
+                  Magic
+                </option>
+
+                <option value="Yu-Gi-Oh!">
+                  Yu-Gi-Oh!
+                </option>
+
+                <option value="Lorcana">
+                  Lorcana
+                </option>
+
+                <option value="Multijogos">
+                  Multijogos
+                </option>
+
+                <option value="Outro">
+                  Outro
+                </option>
+              </select>
+            </div>
+
+            <div class="admin-form-group">
+              <label for="event-format">
+                Formato
+              </label>
+
+              <input id="event-format" type="text" maxlength="100" placeholder="Ex.: Torneio presencial" required>
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="event-image">
+              Imagem
+            </label>
+
+            <div class="admin-image-input">
+              <span>
+                assets/
+              </span>
+
+              <input id="event-image" type="text" maxlength="220" placeholder="evento-1.jpg" autocomplete="off" required>
+            </div>
+
+            <small>
+              Use nomes como evento-1.jpg, evento-50.png ou
+              evento-1000.webp.
+            </small>
+          </div>
+
+          <div class="admin-image-preview" id="event-image-preview-wrapper">
+            <img id="event-image-preview" src="assets/evento-1.jpg" alt="Prévia da imagem do evento">
+
+            <span id="event-image-preview-message" hidden>
+              Imagem não encontrada na pasta assets.
+            </span>
+          </div>
+
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label for="event-start">
+                Início
+              </label>
+
+              <input id="event-start" type="datetime-local" required>
+            </div>
+
+            <div class="admin-form-group">
+              <label for="event-end">
+                Término
+              </label>
+
+              <input id="event-end" type="datetime-local" required>
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="event-location">
+              Local
+            </label>
+
+            <input id="event-location" type="text" maxlength="120" placeholder="Ex.: Universo Ludo" required>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="event-city">
+              Cidade
+            </label>
+
+            <input id="event-city" type="text" maxlength="100" placeholder="Ex.: Guarulhos, SP" required>
+          </div>
+
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label for="event-latitude">
+                Latitude
+              </label>
+
+              <input id="event-latitude" type="number" min="-90" max="90" step="any" placeholder="-23.4543" required>
+            </div>
+
+            <div class="admin-form-group">
+              <label for="event-longitude">
+                Longitude
+              </label>
+
+              <input id="event-longitude" type="number" min="-180" max="180" step="any" placeholder="-46.5337" required>
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="event-description">
+              Descrição
+            </label>
+
+            <textarea id="event-description" rows="5" maxlength="1500" placeholder="Descreva o evento, regras, público e demais informações." required></textarea>
+
+            <small class="admin-character-counter">
+              <span id="description-character-count">
+                0
+              </span>/1500
+            </small>
+          </div>
+
+          <label class="admin-status-control">
+            <span>
+              <strong>
+                Evento ativo
+              </strong>
+
+              <small>
+                Eventos inativos ficam salvos, mas não aparecem no app.
+              </small>
+            </span>
+
+            <span class="admin-switch">
+              <input id="event-active" type="checkbox" checked>
+
+              <span class="admin-switch-control" aria-hidden="true"></span>
+            </span>
+          </label>
+
+          <p class="admin-form-message" id="admin-form-message" role="status" aria-live="polite" hidden></p>
+
+          <button class="admin-save-button" id="save-event-button" type="submit">
+            Salvar evento
+          </button>
+        </form>
+      </section>
+
+      <section class="admin-events-section" aria-labelledby="admin-events-title">
+        <div class="admin-section-heading">
+          <div>
+            <span class="admin-section-eyebrow">
+              Gerenciamento
+            </span>
+
+            <h2 id="admin-events-title">
+              Eventos cadastrados
+            </h2>
+          </div>
+
+          <button class="admin-refresh-button" id="refresh-events-button" type="button">
+            Atualizar
+          </button>
+        </div>
+
+        <div class="admin-event-filters">
+          <button class="admin-filter-button is-active" type="button" data-event-filter="all">
+            Todos
+          </button>
+
+          <button class="admin-filter-button" type="button" data-event-filter="active">
+            Ativos
+          </button>
+
+          <button class="admin-filter-button" type="button" data-event-filter="inactive">
+            Inativos
+          </button>
+
+          <button class="admin-filter-button" type="button" data-event-filter="finished">
+            Finalizados
+          </button>
+        </div>
+
+        <div class="admin-events-list" id="admin-events-list" aria-live="polite">
+          <p class="admin-events-empty">
+            Carregando eventos...
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="admin-eventos.js"></script>
+</body>
+
+</html>

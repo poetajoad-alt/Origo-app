@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#082632">
+
+  <title>Origo | Meu Perfil</title>
+
+  <link rel="stylesheet" href="meu-perfil.css">
+  <script type="module" src="auth-guard.js"></script>
+</head>
+
+<body>
+  <main class="profile-page">
+
+    <header class="profile-header">
+
+      <a class="profile-home-button" href="principal.html" aria-label="Voltar para a página principal">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 11.5L12 4L21 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+
+          <path d="M5.5 10.5V20H18.5V10.5" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" />
+
+          <path d="M9.5 20V14H14.5V20" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" />
+        </svg>
+      </a>
+
+      <h1 class="profile-title">
+        Meu Perfil
+      </h1>
+
+      <span class="profile-header-spacer" aria-hidden="true"></span>
+
+    </header>
+
+    <section class="profile-presentation" aria-label="Apresentação do perfil">
+      <div class="profile-user-information">
+
+        <span class="profile-user-label">
+          Jogador
+        </span>
+
+        <h2 class="profile-user-name" id="profile-user-name">
+          Nome do Usuário
+        </h2>
+
+      </div>
+
+      <div class="profile-avatar" id="profile-avatar" aria-label="Foto do perfil">
+        <span class="profile-avatar-placeholder" id="profile-avatar-placeholder" aria-hidden="true">
+          O
+        </span>
+
+        <img class="profile-avatar-image" id="profile-photo" src="" alt="Foto do perfil do usuário" hidden>
+      </div>
+
+    </section>
+
+    <section class="profile-card" aria-label="Informações do usuário">
+
+      <form class="profile-form" id="profile-form">
+
+        <div class="form-group">
+
+          <label for="profile-name">
+            Nome
+          </label>
+
+          <input type="text" id="profile-name" name="name" autocomplete="name">
+
+        </div>
+
+        <div class="form-group">
+
+          <label for="profile-email">
+            E-mail
+          </label>
+
+          <input type="email" id="profile-email" name="email" autocomplete="email" inputmode="email" readonly aria-readonly="true">
+
+        </div>
+
+        <div class="form-group">
+
+          <label for="profile-phone">
+            Celular
+          </label>
+
+          <input type="tel" id="profile-phone" name="phone" autocomplete="tel" inputmode="tel">
+
+        </div>
+
+        <div class="form-group">
+
+          <label for="profile-favorite-tcg">
+            TCG Favorito
+          </label>
+
+          <input type="text" id="profile-favorite-tcg" name="favoriteTcg">
+
+        </div>
+
+        <div class="form-group">
+
+          <label for="profile-favorite-character">
+            Personagem Preferido
+          </label>
+
+          <input type="text" id="profile-favorite-character" name="favoriteCharacter">
+
+        </div>
+
+        <div class="form-group">
+
+          <label for="profile-deck">
+            Deck Utilizado
+          </label>
+
+          <input type="text" id="profile-deck" name="deck">
+
+        </div>
+        <div class="form-group">
+
+          <label for="profile-city">
+            Cidade
+          </label>
+
+          <input type="text" id="profile-city" name="city" autocomplete="address-level2" maxlength="80" placeholder="Ex.: Guarulhos">
+
+        </div>
+
+        <section class="profile-map-settings" aria-labelledby="profile-map-settings-title">
+          <div class="profile-map-settings-header">
+
+            <h3 class="profile-map-settings-title" id="profile-map-settings-title">
+              Visibilidade no mapa
+            </h3>
+
+            <p class="profile-map-settings-description">
+              Escolha como seu perfil será exibido para outros
+              jogadores próximos.
+            </p>
+
+          </div>
+
+          <div class="profile-map-options">
+
+            <label class="profile-toggle-row">
+
+              <span class="profile-toggle-information">
+
+                <strong>
+                  Aparecer no mapa
+                </strong>
+
+                <small>
+                  Exibe seu nome, TCG, deck, cidade e localização
+                  aproximada.
+                </small>
+
+              </span>
+
+              <span class="profile-switch">
+
+                <input type="checkbox" id="profile-appear-map" name="appearOnMap" aria-label="Aparecer no mapa">
+
+                <span class="profile-switch-control" aria-hidden="true"></span>
+
+              </span>
+
+            </label>
+
+            <label class="profile-toggle-row">
+
+              <span class="profile-toggle-information">
+
+                <strong>
+                  Disponível para jogar
+                </strong>
+
+                <small>
+                  Mostra um indicador verde no seu marcador.
+                </small>
+
+              </span>
+
+              <span class="profile-switch">
+
+                <input type="checkbox" id="profile-available" name="available" aria-label="Disponível para jogar" disabled>
+
+                <span class="profile-switch-control" aria-hidden="true"></span>
+
+              </span>
+
+            </label>
+
+          </div>
+
+          <div class="profile-location-area">
+
+            <button class="app-button profile-location-button" id="profile-location-button" type="button" disabled>
+              Usar minha localização
+            </button>
+
+            <p class="profile-location-status" id="profile-location-status" role="status" aria-live="polite">
+              Ative “Aparecer no mapa” para configurar sua
+              localização.
+            </p>
+
+          </div>
+
+          <p class="profile-map-privacy-note">
+            Sua localização exata não será exibida para outros
+            usuários.
+          </p>
+
+        </section>
+        <p class="profile-message" id="profile-message" role="status" aria-live="polite" hidden></p>
+
+        <div class="profile-actions">
+
+          <button class="app-button profile-save-button" id="profile-save-button" type="submit">
+            Salvar alterações
+          </button>
+
+        </div>
+      </form>
+
+    </section>
+
+  </main>
+  <script type="module" src="meu-perfil.js"></script>
+</body>
+
+</html>

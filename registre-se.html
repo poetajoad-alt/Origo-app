@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#082632">
+
+  <title>Origo | Registre-se</title>
+
+  <link rel="stylesheet" href="registre-se.css">
+</head>
+
+<body>
+  <main class="register-page">
+
+    <h1 class="register-title">
+      Registre-se
+    </h1>
+
+    <section class="register-card">
+
+      <form class="register-form" id="register-form">
+
+        <div class="form-fields">
+
+          <div class="form-group">
+            <label for="name">
+              Nome
+            </label>
+
+            <input type="text" id="name" name="name" autocomplete="name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">
+              E-mail
+            </label>
+
+            <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">
+              Celular
+            </label>
+
+            <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" required>
+          </div>
+
+        </div>
+        <div class="form-group">
+          <label for="password">
+            Senha
+          </label>
+
+          <input type="password" id="password" name="password" autocomplete="new-password" minlength="6" required>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password">
+            Confirmar senha
+          </label>
+
+          <input type="password" id="confirm-password" name="confirmPassword" autocomplete="new-password" minlength="6" required>
+        </div>
+        <div class="terms-field">
+
+          <input type="checkbox" id="terms" name="terms" required>
+
+          <label for="terms">
+            Concordo com os
+            <a href="termos.html">
+              Termos e Condições
+            </a>
+          </label>
+
+        </div>
+        <p class="register-message" id="register-message" role="status" aria-live="polite" hidden></p>
+        <div class="register-actions">
+
+          <button class="app-button app-button-primary" type="submit">
+            Registre-se
+          </button>
+
+          <div class="button-divider" aria-hidden="true"></div>
+
+          <button class="app-button app-button-google" type="button" id="google-register-button">
+            <svg class="google-icon" width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.92h5.38a4.6 4.6 0 0 1-2 3.02v2.54h3.24c1.9-1.75 2.98-4.33 2.98-7.41Z" />
+
+              <path fill="#34A853" d="M12 22c2.7 0 4.98-.9 6.64-2.36l-3.24-2.54c-.9.6-2.05.96-3.4.96-2.61 0-4.82-1.76-5.61-4.13H3.05v2.62A10 10 0 0 0 12 22Z" />
+
+              <path fill="#FBBC05" d="M6.39 13.93A6 6 0 0 1 6.08 12c0-.67.11-1.32.31-1.93V7.45H3.05A10 10 0 0 0 2 12c0 1.61.38 3.13 1.05 4.55l3.34-2.62Z" />
+
+              <path fill="#EA4335" d="M12 5.94c1.47 0 2.79.51 3.83 1.5l2.88-2.88C16.97 2.94 14.7 2 12 2a10 10 0 0 0-8.95 5.45l3.34 2.62C7.18 7.7 9.39 5.94 12 5.94Z" />
+            </svg>
+
+            <span>Registre-se com o Google</span>
+          </button>
+
+        </div>
+
+      </form>
+
+    </section>
+
+  </main>
+  <script type="module" src="registre-se.js"></script>
+</body>
+
+</html>

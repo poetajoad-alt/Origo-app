@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#082632">
+
+  <title>Origo | Mapa</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+  <link rel="stylesheet" href="mapa.css">
+  <script type="module" src="auth-guard.js"></script>
+</head>
+
+<body>
+  <main class="map-page">
+
+    <!-- Cabeçalho -->
+    <header class="map-header">
+
+      <a class="map-header-button" href="principal.html" aria-label="Voltar para a página principal">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5L8 12L15 19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+
+      <h1 class="map-title">
+        Mapa
+      </h1>
+
+      <a class="map-logo-link" href="principal.html" aria-label="Ir para o início">
+        <img class="map-logo" src="assets/origo-vector.svg" alt="Origo">
+      </a>
+
+    </header>
+
+    <!-- Área principal do mapa -->
+    <section class="map-interface" aria-label="Mapa da comunidade Origo">
+
+      <div class="community-map" id="community-map"></div>
+
+      <!-- Filtros -->
+      <div class="map-filters" role="group" aria-label="Filtrar pontos do mapa">
+
+        <button class="map-filter-button is-active" type="button" data-map-filter="all" aria-pressed="true">
+          Todos
+        </button>
+
+        <button class="map-filter-button" type="button" data-map-filter="player" aria-pressed="false">
+          <span class="filter-color filter-color-player" aria-hidden="true"></span>
+
+          Jogadores
+        </button>
+
+        <button class="map-filter-button" type="button" data-map-filter="store" aria-pressed="false">
+          <span class="filter-color filter-color-store" aria-hidden="true"></span>
+
+          Lojas
+        </button>
+
+        <button class="map-filter-button" type="button" data-map-filter="event" aria-pressed="false">
+          <span class="filter-color filter-color-event" aria-hidden="true"></span>
+
+          Eventos
+        </button>
+
+      </div>
+
+      <!-- Botão de localização -->
+      <button class="map-location-button" id="locate-user-button" type="button" aria-label="Encontrar minha localização" title="Minha localização">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2.2" />
+
+          <path d="M12 2V5M12 19V22M2 12H5M19 12H22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" />
+        </svg>
+      </button>
+
+      <!-- Mensagens do mapa -->
+      <p class="map-status" id="map-status" role="status" aria-live="polite" hidden></p>
+
+    </section>
+
+    <!-- Painel inferior -->
+    <aside class="map-bottom-sheet" id="map-bottom-sheet" aria-hidden="true" aria-labelledby="map-sheet-title">
+
+      <div class="map-sheet-handle" aria-hidden="true"></div>
+
+      <button class="map-sheet-close" id="map-sheet-close" type="button" aria-label="Fechar informações">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" />
+        </svg>
+      </button>
+
+      <div class="map-sheet-heading">
+
+        <span class="map-sheet-type" id="map-sheet-type">
+          Jogador
+        </span>
+
+        <span class="map-sheet-availability" id="map-sheet-availability" hidden>
+          Disponível agora
+        </span>
+
+      </div>
+
+      <h2 class="map-sheet-title" id="map-sheet-title">
+        Nome do ponto
+      </h2>
+
+      <p class="map-sheet-subtitle" id="map-sheet-subtitle"></p>
+
+      <div class="map-sheet-details" id="map-sheet-details"></div>
+
+    </aside>
+
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script type="module" src="mapa.js"></script>
+
+</body>
+
+</html>

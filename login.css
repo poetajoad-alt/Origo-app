@@ -1,0 +1,362 @@
+/* ==============================
+   CONFIGURAÇÕES GERAIS
+================================ */
+
+:root {
+  --color-background-start: #187498;
+  --color-background-end: #082632;
+
+  --color-primary: #f9d923;
+  --color-title: #f9d923;
+
+  --color-card: #ffffff;
+  --color-text: #000000;
+  --color-google: #d93737;
+
+  --color-input-border: #d8d8d8;
+
+  --font-interface: "Segoe UI", Arial, sans-serif;
+
+  --font-semibold: "Segoe UI Semibold", "Segoe UI", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  background: linear-gradient(
+    180deg,
+    var(--color-background-start) 0%,
+    var(--color-background-end) 100%
+  );
+
+  color: var(--color-text);
+  font-family: var(--font-interface);
+}
+
+/* ==============================
+   PÁGINA
+================================ */
+
+.login-page {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  margin: 0 auto;
+
+  padding: max(78px, env(safe-area-inset-top)) 13px
+    max(35px, env(safe-area-inset-bottom));
+}
+
+/* ==============================
+   TÍTULO
+================================ */
+
+.login-title {
+  margin: 0 9px 29px;
+
+  color: var(--color-title);
+
+  font-family: var(--font-semibold);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* ==============================
+   CARD
+================================ */
+
+.login-card {
+  width: 100%;
+  min-height: calc(100dvh - 172px);
+
+  padding: 89px 19px 36px;
+
+  border-radius: 15px;
+
+  background-color: var(--color-card);
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.login-form {
+  min-height: calc(100dvh - 297px);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* ==============================
+   CAMPOS
+================================ */
+
+.login-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group label {
+  color: var(--color-text);
+
+  font-family: var(--font-semibold);
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.form-group input {
+  width: 100%;
+  min-height: 39px;
+
+  padding: 7px 15px;
+
+  border: 1px solid var(--color-input-border);
+  border-radius: 22px;
+
+  background-color: #ffffff;
+  color: var(--color-text);
+
+  font-family: var(--font-interface);
+  font-size: 17px;
+
+  outline: none;
+
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* O destaque amarelo aparece apenas
+   no campo selecionado. */
+
+.form-group input:focus {
+  border-color: var(--color-primary);
+
+  box-shadow:
+    0 0 0 1px rgba(249, 217, 35, 1),
+    0 3px 5px rgba(0, 0, 0, 0.14);
+}
+
+/* ==============================
+   ÁREA DOS BOTÕES
+================================ */
+
+.login-actions {
+  margin-top: 64px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 132px;
+}
+
+/* ==============================
+   COMPORTAMENTO PADRÃO
+   DOS BOTÕES DO APP
+================================ */
+
+.app-button {
+  width: 100%;
+  min-height: 56px;
+
+  padding: 9px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  font-family: var(--font-semibold);
+  text-align: center;
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.app-button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.04);
+}
+
+.app-button:active {
+  transform: scale(0.95);
+  filter: brightness(0.98);
+}
+
+.app-button:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* ==============================
+   BOTÃO PRINCIPAL
+================================ */
+
+.app-button-primary {
+  border-radius: 20px;
+
+  background-color: var(--color-primary);
+  color: var(--color-text);
+
+  font-size: 25px;
+  font-weight: 600;
+
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.18);
+}
+
+/* ==============================
+   BOTÃO GOOGLE
+================================ */
+
+.app-button-google {
+  position: relative;
+
+  min-height: 41px;
+
+  border: 1px solid #d5d1ca;
+  border-radius: 22px;
+
+  background-color: #ffffff;
+  color: var(--color-google);
+
+  font-family: var(--font-interface);
+  font-size: 15px;
+  font-weight: 400;
+
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+}
+
+.google-icon {
+  position: absolute;
+  left: 39px;
+
+  flex-shrink: 0;
+}
+
+/* ==============================
+   CELULARES MENORES
+================================ */
+
+@media (max-width: 360px) {
+  .login-page {
+    padding-top: 68px;
+  }
+
+  .login-card {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .form-group label {
+    font-size: 23px;
+  }
+
+  .app-button-primary {
+    font-size: 23px;
+  }
+
+  .google-icon {
+    left: 30px;
+  }
+}
+
+/* ==============================
+   TELAS MAIS BAIXAS
+================================ */
+
+@media (max-height: 700px) {
+  .login-page {
+    padding-top: 42px;
+    padding-bottom: 25px;
+  }
+
+  .login-title {
+    margin-bottom: 18px;
+  }
+
+  .login-card {
+    min-height: calc(100dvh - 108px);
+    padding-top: 55px;
+    padding-bottom: 25px;
+  }
+
+  .login-form {
+    min-height: calc(100dvh - 188px);
+  }
+
+  .login-actions {
+    margin-top: 45px;
+    gap: 80px;
+  }
+  /* ==============================
+   MENSAGENS DO LOGIN
+================================ */
+
+  .login-message {
+    width: 100%;
+
+    margin-top: 24px;
+    padding: 10px 13px;
+
+    border-radius: 12px;
+
+    background-color: rgba(24, 116, 152, 0.12);
+    color: #082632;
+
+    font-family: var(--font-semibold);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+
+    text-align: center;
+  }
+
+  .login-message.is-error {
+    background-color: rgba(235, 83, 83, 0.14);
+    color: #a42626;
+  }
+
+  .login-message.is-success {
+    background-color: rgba(54, 174, 124, 0.16);
+    color: #176a4a;
+  }
+
+  .app-button:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.65;
+
+    transform: none;
+    filter: none;
+  }
+}

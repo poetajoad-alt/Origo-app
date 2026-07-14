@@ -1,0 +1,198 @@
+/* ==============================
+   CONFIGURAÇÕES GERAIS
+================================ */
+
+:root {
+  --color-background-start: #187498;
+  --color-background-end: #082632;
+
+  --color-button: #f9d923;
+  --color-button-text: #000000;
+
+  --color-title: #ffffff;
+
+  --font-title: "Arsenal", sans-serif;
+  --font-button: "Segoe UI Semibold", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  background: linear-gradient(
+    180deg,
+    var(--color-background-start) 0%,
+    var(--color-background-end) 100%
+  );
+}
+
+/* ==============================
+   CONTEÚDO PRINCIPAL
+================================ */
+
+.index-page {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  margin: 0 auto;
+  padding: max(70px, env(safe-area-inset-top)) 14px
+    max(62px, env(safe-area-inset-bottom));
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  overflow: hidden;
+}
+
+/* ==============================
+   LOGO E FRASE
+================================ */
+
+.index-brand {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.index-logo {
+  display: block;
+
+  width: min(72%, 290px);
+  height: auto;
+
+  object-fit: contain;
+}
+
+.index-title {
+  margin-top: 31px;
+
+  color: var(--color-title);
+
+  font-family: var(--font-title);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+
+  text-align: center;
+}
+
+/* ==============================
+   BOTÕES
+================================ */
+
+.index-actions {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.index-button {
+  width: 100%;
+  min-height: 42px;
+
+  padding: 7px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 15px;
+
+  background-color: var(--color-button);
+  color: var(--color-button-text);
+
+  font-family: var(--font-button);
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.1;
+
+  text-align: center;
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+.index-button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.04);
+}
+
+.index-button:active {
+  transform: scale(0.95);
+  filter: brightness(0.98);
+}
+
+.index-button:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+
+/* ==============================
+   TELAS MENORES
+================================ */
+
+@media (max-width: 360px) {
+  .index-page {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .index-logo {
+    width: 70%;
+  }
+
+  .index-title {
+    font-size: 26px;
+  }
+
+  .index-button {
+    font-size: 22px;
+  }
+}
+
+/* ==============================
+   TELAS MAIS BAIXAS
+================================ */
+
+@media (max-height: 650px) {
+  .index-page {
+    padding-top: 45px;
+    padding-bottom: 35px;
+  }
+
+  .index-logo {
+    width: min(62%, 240px);
+  }
+
+  .index-title {
+    margin-top: 22px;
+  }
+
+  .index-actions {
+    gap: 15px;
+  }
+}

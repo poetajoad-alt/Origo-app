@@ -1,0 +1,424 @@
+/* ==============================
+   CONFIGURAÇÕES GERAIS
+================================ */
+
+:root {
+  --color-background-start: #187498;
+  --color-background-end: #082632;
+
+  --color-primary: #f9d923;
+  --color-title: #f9d923;
+
+  --color-card: #ffffff;
+  --color-text: #000000;
+  --color-google: #d93737;
+
+  --color-input-border: #d8d8d8;
+  --color-divider: #dddddd;
+
+  --font-interface: "Segoe UI", Arial, sans-serif;
+
+  --font-semibold: "Segoe UI Semibold", "Segoe UI", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  background: linear-gradient(
+    180deg,
+    var(--color-background-start) 0%,
+    var(--color-background-end) 100%
+  );
+
+  color: var(--color-text);
+  font-family: var(--font-interface);
+}
+
+/* ==============================
+   PÁGINA
+================================ */
+
+.register-page {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  margin: 0 auto;
+
+  padding: max(58px, env(safe-area-inset-top)) 9px
+    max(36px, env(safe-area-inset-bottom));
+}
+
+/* ==============================
+   TÍTULO
+================================ */
+
+.register-title {
+  margin: 0 7px 20px;
+
+  color: var(--color-title);
+
+  font-family: var(--font-semibold);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* ==============================
+   CARD DO FORMULÁRIO
+================================ */
+
+.register-card {
+  width: 100%;
+  min-height: calc(100dvh - 139px);
+
+  padding: 22px 6px 25px;
+
+  border-radius: 15px;
+
+  background-color: var(--color-card);
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.register-form {
+  min-height: calc(100dvh - 187px);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* ==============================
+   CAMPOS DO FORMULÁRIO
+================================ */
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.form-group label {
+  color: var(--color-text);
+
+  font-family: var(--font-semibold);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.form-group input {
+  width: 100%;
+  min-height: 43px;
+
+  padding: 8px 12px;
+
+  border: 1px solid var(--color-input-border);
+  border-radius: 22px;
+
+  background-color: #ffffff;
+  color: var(--color-text);
+
+  font-family: var(--font-interface);
+  font-size: 16px;
+
+  outline: none;
+
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.17);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* A sombra amarela aparece somente
+   no campo que estiver selecionado. */
+
+.form-group input:focus {
+  border-color: var(--color-primary);
+
+  box-shadow:
+    0 0 0 2px rgba(249, 217, 35, 0.95),
+    0 3px 5px rgba(0, 0, 0, 0.13);
+}
+
+/* ==============================
+   TERMOS E CONDIÇÕES
+================================ */
+
+.terms-field {
+  margin-top: 42px;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.terms-field input {
+  width: 17px;
+  height: 17px;
+
+  flex-shrink: 0;
+
+  accent-color: var(--color-primary);
+
+  cursor: pointer;
+}
+
+.terms-field label {
+  color: var(--color-text);
+
+  font-family: var(--font-semibold);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+
+  cursor: pointer;
+}
+
+.terms-field a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.terms-field a:hover {
+  text-decoration: underline;
+}
+
+/* ==============================
+   ÁREA DOS BOTÕES
+================================ */
+
+.register-actions {
+  margin-top: 50px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.app-button {
+  width: 100%;
+  min-height: 42px;
+
+  padding: 7px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 15px;
+
+  font-family: var(--font-semibold);
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.1;
+
+  text-align: center;
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.app-button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.04);
+}
+
+.app-button:active {
+  transform: scale(0.95);
+  filter: brightness(0.98);
+}
+
+.app-button:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* ==============================
+   BOTÃO PRINCIPAL
+================================ */
+
+.app-button-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text);
+
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.16);
+}
+
+/* ==============================
+   DIVISOR
+================================ */
+
+.button-divider {
+  width: calc(100% - 18px);
+  height: 1px;
+
+  margin: 38px auto 31px;
+
+  background-color: var(--color-divider);
+}
+
+/* ==============================
+   BOTÃO DO GOOGLE
+================================ */
+
+.app-button-google {
+  position: relative;
+
+  min-height: 42px;
+
+  border: 1px solid #d5d1ca;
+  border-radius: 22px;
+
+  background-color: #ffffff;
+  color: var(--color-google);
+
+  font-family: var(--font-interface);
+  font-size: 15px;
+  font-weight: 400;
+
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.17);
+}
+
+.google-icon {
+  position: absolute;
+  left: 24px;
+
+  flex-shrink: 0;
+}
+
+/* ==============================
+   CELULARES MENORES
+================================ */
+
+@media (max-width: 360px) {
+  .register-page {
+    padding-top: 48px;
+  }
+
+  .register-title {
+    font-size: 27px;
+  }
+
+  .terms-field label {
+    font-size: 13px;
+  }
+
+  .app-button {
+    font-size: 22px;
+  }
+
+  .app-button-google {
+    font-size: 14px;
+  }
+
+  .google-icon {
+    left: 18px;
+  }
+}
+
+/* ==============================
+   TELAS MAIS BAIXAS
+================================ */
+
+@media (max-height: 700px) {
+  .register-page {
+    padding-top: 35px;
+    padding-bottom: 25px;
+  }
+
+  .register-title {
+    margin-bottom: 14px;
+  }
+
+  .register-card {
+    min-height: calc(100dvh - 101px);
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+
+  .register-form {
+    min-height: calc(100dvh - 137px);
+  }
+
+  .terms-field {
+    margin-top: 27px;
+  }
+
+  .register-actions {
+    margin-top: 35px;
+  }
+
+  .button-divider {
+    margin-top: 25px;
+    margin-bottom: 22px;
+  }
+  /* ==============================
+   MENSAGENS DO CADASTRO
+================================ */
+
+  .register-message {
+    width: 100%;
+
+    margin-top: 20px;
+    padding: 10px 13px;
+
+    border-radius: 12px;
+
+    background-color: rgba(24, 116, 152, 0.12);
+    color: #082632;
+
+    font-family: var(--font-semibold);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+
+    text-align: center;
+  }
+
+  .register-message.is-error {
+    background-color: rgba(235, 83, 83, 0.14);
+    color: #a42626;
+  }
+
+  .register-message.is-success {
+    background-color: rgba(54, 174, 124, 0.16);
+    color: #176a4a;
+  }
+
+  .app-button:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.65;
+
+    transform: none;
+    filter: none;
+  }
+}
