@@ -12,7 +12,7 @@
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
-  <link rel="stylesheet" href="mapa.css?v=4">
+  <link rel="stylesheet" href="mapa.css?v=5">
   <script type="module" src="auth-guard.js"></script>
 </head>
 
@@ -161,6 +161,77 @@
             Online
           </button>
         </div>
+        <div class="invite-match-details" id="invite-match-details" hidden>
+          <p class="invite-instruction">
+            Detalhes da partida
+          </p>
+
+          <div class="invite-field">
+            <label class="invite-field-label" for="invite-tcg">
+              TCG
+            </label>
+
+            <select class="invite-field-control" id="invite-tcg">
+              <option value="">
+                Selecione o TCG
+              </option>
+
+              <option value="Pokémon">
+                Pokémon
+              </option>
+
+              <option value="Yu-Gi-Oh!">
+                Yu-Gi-Oh!
+              </option>
+
+              <option value="Magic">
+                Magic
+              </option>
+
+              <option value="Lorcana">
+                Lorcana
+              </option>
+            </select>
+          </div>
+
+          <div class="invite-field">
+            <label class="invite-field-label" for="invite-format">
+              Formato
+            </label>
+
+            <input class="invite-field-control" id="invite-format" type="text" maxlength="60" placeholder="Ex.: Standard, Commander ou Casual" autocomplete="off">
+          </div>
+
+          <div class="invite-date-time-grid">
+            <div class="invite-field">
+              <label class="invite-field-label" for="invite-date">
+                Data
+              </label>
+
+              <input class="invite-field-control" id="invite-date" type="date">
+            </div>
+
+            <div class="invite-field">
+              <label class="invite-field-label" for="invite-time">
+                Horário
+              </label>
+
+              <input class="invite-field-control" id="invite-time" type="time">
+            </div>
+          </div>
+
+          <div class="invite-field" id="invite-location-field" hidden>
+            <label class="invite-field-label" for="invite-location">
+              Local da partida
+            </label>
+
+            <input class="invite-field-control" id="invite-location" type="text" maxlength="120" placeholder="Ex.: loja, shopping ou espaço público" autocomplete="off">
+
+            <p class="invite-field-hint">
+              Prefira combinar a partida em um local público.
+            </p>
+          </div>
+        </div>
         <p class="invite-instruction">
           Escolha uma mensagem:
         </p>
@@ -210,7 +281,7 @@
             Você consegue jogar por vídeo?
           </button>
         </div>
-
+        <p class="invite-form-message" id="invite-form-message" role="status" aria-live="polite" hidden></p>
         <div class="invite-actions">
           <button class="invite-cancel-button" id="invite-cancel-button" type="button">
             Cancelar

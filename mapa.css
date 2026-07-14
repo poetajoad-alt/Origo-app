@@ -1041,7 +1041,90 @@ body {
   font-size: 15px;
   font-weight: 600;
 }
+/* ==============================
+   DETALHES DA PARTIDA
+================================ */
 
+.invite-match-details {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.invite-match-details[hidden],
+.invite-location-field[hidden] {
+  display: none;
+}
+
+.invite-field {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.invite-field-label {
+  margin-bottom: 6px;
+
+  display: block;
+
+  color: var(--color-background);
+
+  font-family: var(--font-semibold);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.invite-field-control {
+  width: 100%;
+  min-height: 45px;
+
+  padding: 10px 12px;
+
+  border: 1px solid #dce2e4;
+  border-radius: 13px;
+
+  background-color: #f1f3f3;
+  color: var(--color-background);
+
+  font-family: var(--font-interface);
+  font-size: 15px;
+  line-height: 1.3;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.invite-field-control:focus {
+  border-color: var(--color-blue);
+
+  background-color: #ffffff;
+
+  box-shadow: 0 0 0 3px rgba(24, 116, 152, 0.16);
+}
+
+.invite-field-control::placeholder {
+  color: #7a858a;
+}
+
+.invite-date-time-grid {
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.invite-field-hint {
+  margin-top: 6px;
+
+  color: var(--color-soft-text);
+
+  font-family: var(--font-interface);
+  font-size: 12px;
+  line-height: 1.35;
+}
 .invite-message-options {
   width: 100%;
 
@@ -1107,7 +1190,30 @@ body {
 
   opacity: 0.65;
 }
+/* ==============================
+   MENSAGEM DO FORMULÁRIO
+================================ */
 
+.invite-form-message {
+  width: 100%;
+
+  margin-top: 15px;
+  padding: 10px 12px;
+
+  border: 1px solid rgba(235, 83, 83, 0.35);
+  border-radius: 12px;
+
+  background-color: rgba(235, 83, 83, 0.12);
+  color: #a42f2f;
+
+  font-family: var(--font-interface);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.invite-form-message[hidden] {
+  display: none;
+}
 .invite-actions {
   width: 100%;
 
@@ -1203,5 +1309,9 @@ body {
 
   .invite-actions {
     grid-template-columns: 1fr;
+  }
+  .invite-date-time-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 }
