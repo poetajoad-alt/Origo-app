@@ -101,6 +101,9 @@ const inviteOverlay = document.getElementById("invite-overlay");
 const inviteCloseButton = document.getElementById("invite-close-button");
 
 const inviteRecipientName = document.getElementById("invite-recipient-name");
+const inviteModalityButtons = document.querySelectorAll(
+  "[data-invite-modality]",
+);
 
 const inviteMessageButtons = document.querySelectorAll("[data-invite-message]");
 
@@ -123,7 +126,7 @@ let statusTimer = null;
 let allMapPoints = [];
 let selectedPlayerPoint = null;
 let currentUserId = "";
-
+let selectedInviteModality = "";
 let selectedInviteMessage = "";
 
 let inviteIsSubmitting = false;
@@ -684,7 +687,16 @@ function closePointDetails() {
 ================================ */
 
 function resetInvitePanel() {
+  selectedInviteModality = "";
   selectedInviteMessage = "";
+
+  inviteModalityButtons.forEach((button) => {
+    button.classList.remove("is-selected");
+
+    button.setAttribute("aria-pressed", "false");
+
+    button.disabled = false;
+  });
 
   inviteMessageButtons.forEach((button) => {
     button.classList.remove("is-selected");
@@ -692,6 +704,8 @@ function resetInvitePanel() {
     button.setAttribute("aria-pressed", "false");
 
     button.disabled = false;
+
+    button.hidden = true;
   });
 
   if (inviteSendButton) {
@@ -703,7 +717,53 @@ function resetInvitePanel() {
     inviteCancelButton.disabled = false;
   }
 }
+function selectInviteModality(button) {
+  if (!button || inviteIsSubmitting) {
+    return;
+  }
 
+  const modality = button.dataset.inviteModality || "";
+
+  if (!["presencial", "online"].includes(modality)) {
+    return;
+  }
+
+  selectedInviteModality = modality;
+  selectedInviteMessage = "";
+
+  inviteModalityButtons.forEach((otherButton) => {
+    const isSelected = otherButton === button;
+
+    otherButton.classList.toggle("is-selected", isSelected);
+
+    otherButton.setAttribute("aria-pressed", String(isSelected));
+  });
+
+  inviteMessageButtons.forEach((messageButton) => {
+    const shouldShow = messageButton.dataset.inviteFor === modality;
+
+    messageButton.hidden = !shouldShow;
+    messageButton.disabled = !shouldShow;
+
+    messageButton.classList.remove("is-selected");
+
+    messageButton.setAttribute("aria-pressed", "false");
+  });
+
+  if (inviteSendButton) {
+    inviteSendButton.disabled = true;
+  }
+
+  window.setTimeout(() => {
+    const firstVisibleMessage = Array.from(inviteMessageButtons).find(
+      (messageButton) => {
+        return !messageButton.hidden;
+      },
+    );
+
+    firstVisibleMessage?.focus();
+  }, 50);
+}
 function openInvitePanel() {
   if (!selectedPlayerPoint) {
     showMapStatus("Nenhum jogador foi selecionado.", 5000);
@@ -749,7 +809,7 @@ function openInvitePanel() {
   inviteLayer.setAttribute("aria-hidden", "false");
 
   window.setTimeout(() => {
-    inviteMessageButtons[0]?.focus();
+    inviteModalityButtons[0]?.focus();
   }, 50);
 }
 
@@ -808,8 +868,15 @@ async function pendingInviteExists(senderId, recipientId) {
 function setInviteSubmitting(isSubmitting) {
   inviteIsSubmitting = isSubmitting;
 
-  inviteMessageButtons.forEach((button) => {
+  inviteModalityButtons.forEach((button) => {
     button.disabled = isSubmitting;
+  });
+
+  inviteMessageButtons.forEach((button) => {
+    const belongsToSelectedModality =
+      button.dataset.inviteFor === selectedInviteModality;
+
+    button.disabled = isSubmitting || !belongsToSelectedModality;
   });
 
   if (inviteCancelButton) {
@@ -817,16 +884,21 @@ function setInviteSubmitting(isSubmitting) {
   }
 
   if (inviteSendButton) {
-    inviteSendButton.disabled = isSubmitting || !selectedInviteMessage;
+    inviteSendButton.disabled =
+      isSubmitting || !selectedInviteModality || !selectedInviteMessage;
 
     inviteSendButton.textContent = isSubmitting
       ? "Enviando..."
       : "Enviar convite";
   }
 }
-
 async function sendInvite() {
-  if (inviteIsSubmitting || !selectedPlayerPoint || !selectedInviteMessage) {
+  if (
+    inviteIsSubmitting ||
+    !selectedPlayerPoint ||
+    !selectedInviteModality ||
+    !selectedInviteMessage
+  ) {
     return;
   }
 
@@ -873,6 +945,8 @@ async function sendInvite() {
       destinatarioId: selectedPlayerPoint.id,
 
       tipo: "jogar",
+
+      modalidade: selectedInviteModality,
 
       mensagem: selectedInviteMessage,
 
@@ -1127,6 +1201,11 @@ function initializeInterfaceEvents() {
   inviteCancelButton?.addEventListener("click", closeInvitePanel);
 
   inviteOverlay?.addEventListener("click", closeInvitePanel);
+  inviteModalityButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      selectInviteModality(button);
+    });
+  });
 
   inviteMessageButtons.forEach((button) => {
     button.addEventListener("click", () => {

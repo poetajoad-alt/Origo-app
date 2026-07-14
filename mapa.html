@@ -12,7 +12,7 @@
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
-  <link rel="stylesheet" href="mapa.css">
+  <link rel="stylesheet" href="mapa.css?v=4">
   <script type="module" src="auth-guard.js"></script>
 </head>
 
@@ -148,34 +148,66 @@
             Jogador
           </strong>
         </p>
+        <p class="invite-instruction">
+          Como você quer jogar?
+        </p>
 
+        <div class="invite-modality-options" role="group" aria-label="Escolher modalidade da partida">
+          <button class="invite-modality-button" type="button" data-invite-modality="presencial" aria-pressed="false">
+            Presencial
+          </button>
+
+          <button class="invite-modality-button" type="button" data-invite-modality="online" aria-pressed="false">
+            Online
+          </button>
+        </div>
         <p class="invite-instruction">
           Escolha uma mensagem:
         </p>
 
         <div class="invite-message-options" role="group" aria-label="Mensagens disponíveis">
-          <button class="invite-message-button" type="button" data-invite-message="Vamos jogar?" aria-pressed="false">
-            Vamos jogar?
+          <!-- Mensagens presenciais -->
+
+          <button class="invite-message-button" type="button" data-invite-message="Vamos jogar presencialmente?" data-invite-for="presencial" aria-pressed="false" hidden>
+            Vamos jogar presencialmente?
           </button>
 
-          <button class="invite-message-button" type="button" data-invite-message="Está disponível hoje?" aria-pressed="false">
+          <button class="invite-message-button" type="button" data-invite-message="Está disponível hoje?" data-invite-for="presencial" aria-pressed="false" hidden>
             Está disponível hoje?
           </button>
 
-          <button class="invite-message-button" type="button" data-invite-message="Qual TCG você joga?" aria-pressed="false">
+          <button class="invite-message-button" type="button" data-invite-message="Qual TCG você joga?" data-invite-for="presencial" aria-pressed="false" hidden>
             Qual TCG você joga?
           </button>
 
-          <button class="invite-message-button" type="button" data-invite-message="Qual formato você prefere?" aria-pressed="false">
+          <button class="invite-message-button" type="button" data-invite-message="Qual formato você prefere?" data-invite-for="presencial" aria-pressed="false" hidden>
             Qual formato você prefere?
           </button>
 
-          <button class="invite-message-button" type="button" data-invite-message="Quer marcar uma partida?" aria-pressed="false">
-            Quer marcar uma partida?
+          <button class="invite-message-button" type="button" data-invite-message="Quer marcar uma partida presencial?" data-invite-for="presencial" aria-pressed="false" hidden>
+            Quer marcar uma partida presencial?
           </button>
 
-          <button class="invite-message-button" type="button" data-invite-message="Podemos trocar WhatsApp?" aria-pressed="false">
-            Podemos trocar WhatsApp?
+          <!-- Mensagens online -->
+
+          <button class="invite-message-button" type="button" data-invite-message="Vamos jogar online agora?" data-invite-for="online" aria-pressed="false" hidden>
+            Vamos jogar online agora?
+          </button>
+
+          <button class="invite-message-button" type="button" data-invite-message="Quer marcar uma partida online?" data-invite-for="online" aria-pressed="false" hidden>
+            Quer marcar uma partida online?
+          </button>
+
+          <button class="invite-message-button" type="button" data-invite-message="Qual TCG você quer jogar?" data-invite-for="online" aria-pressed="false" hidden>
+            Qual TCG você quer jogar?
+          </button>
+
+          <button class="invite-message-button" type="button" data-invite-message="Qual formato você prefere?" data-invite-for="online" aria-pressed="false" hidden>
+            Qual formato você prefere?
+          </button>
+
+          <button class="invite-message-button" type="button" data-invite-message="Você consegue jogar por vídeo?" data-invite-for="online" aria-pressed="false" hidden>
+            Você consegue jogar por vídeo?
           </button>
         </div>
 

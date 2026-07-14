@@ -963,7 +963,75 @@ body {
   font-family: var(--font-semibold);
   font-weight: 600;
 }
+/* ==============================
+   MODALIDADE DO CONVITE
+================================ */
 
+.invite-modality-options {
+  width: 100%;
+
+  margin-top: 11px;
+
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
+}
+
+.invite-modality-button {
+  min-height: 45px;
+
+  padding: 10px 14px;
+
+  border: 1px solid #dce2e4;
+  border-radius: 14px;
+
+  background-color: #f1f3f3;
+  color: var(--color-background);
+
+  font-family: var(--font-semibold);
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.invite-modality-button:hover {
+  transform: scale(1.02);
+
+  border-color: var(--color-blue);
+}
+
+.invite-modality-button:active {
+  transform: scale(0.97);
+}
+
+.invite-modality-button.is-selected {
+  border-color: var(--color-yellow);
+
+  background-color: var(--color-yellow);
+  color: var(--color-background);
+
+  box-shadow: 0 2px 7px rgba(8, 38, 50, 0.18);
+}
+
+.invite-modality-button:focus-visible {
+  outline: 3px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+.invite-modality-button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.6;
+
+  transform: none;
+}
 .invite-instruction {
   margin-top: 20px;
 
