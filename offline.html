@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#082632">
+
+  <title>Origo | Sem conexão</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+
+      margin: 0;
+      padding: 32px 24px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: #082632;
+      color: #ffffff;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    }
+
+    .offline-page {
+      width: 100%;
+      max-width: 360px;
+
+      text-align: center;
+    }
+
+    .offline-logo {
+      width: min(210px, 70vw);
+      height: auto;
+
+      margin-bottom: 38px;
+    }
+
+    .offline-title {
+      margin:
+        0 0 14px;
+
+      color: #f9d923;
+
+      font-size: 29px;
+      line-height: 1.15;
+    }
+
+    .offline-description {
+      margin:
+        0 0 28px;
+
+      color: #dce8e8;
+
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .offline-button {
+      min-width: 190px;
+      min-height: 48px;
+
+      padding: 12px 24px;
+
+      border: none;
+      border-radius: 24px;
+
+      background-color: #f9d923;
+      color: #082632;
+
+      font-size: 16px;
+      font-weight: 700;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.24);
+    }
+
+    .offline-button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+
+<body>
+  <main class="offline-page">
+
+    <img class="offline-logo" src="./assets/logo-origo-index.png" alt="Origo">
+
+    <h1 class="offline-title">
+      Você está offline
+    </h1>
+
+    <p class="offline-description">
+      Reconecte-se à internet para acessar partidas,
+      convites, eventos, jogadores e informações atualizadas.
+    </p>
+
+    <button class="offline-button" type="button" onclick="window.location.reload()">
+      Tentar novamente
+    </button>
+
+  </main>
+</body>
+
+</html>

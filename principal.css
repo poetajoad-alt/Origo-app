@@ -1470,4 +1470,482 @@ body.menu-open {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+  /* ==============================
+   SEÇÃO MINHAS PARTIDAS
+================================ */
+
+  .matches-section {
+    width: 100%;
+
+    padding-top: 42px;
+    padding-bottom: 42px;
+  }
+
+  .matches-heading {
+    width: 100%;
+
+    margin-bottom: 18px;
+    padding: 0 26px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .matches-swipe-hint {
+    color: #c5efff;
+
+    font-family: var(--font-interface);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  /* ==============================
+   CARROSSEL DE PARTIDAS
+================================ */
+
+  .matches-track {
+    width: 100%;
+
+    padding: 0 26px 16px;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 17px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 26px;
+    overscroll-behavior-x: contain;
+
+    scrollbar-width: none;
+  }
+
+  .matches-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ==============================
+   CARD DA PARTIDA
+================================ */
+
+  .match-card {
+    width: calc(100vw - 52px);
+    max-width: 350px;
+
+    flex: 0 0 calc(100vw - 52px);
+
+    overflow: hidden;
+
+    border-radius: 20px;
+
+    background-color: #ffffff;
+    color: #000000;
+
+    scroll-snap-align: center;
+
+    box-shadow:
+      0 3px 0 rgba(54, 174, 124, 0.9),
+      0 6px 12px rgba(0, 0, 0, 0.18);
+
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .match-card.is-expanded {
+    box-shadow:
+      0 4px 0 rgba(249, 217, 35, 0.9),
+      0 8px 17px rgba(0, 0, 0, 0.24);
+  }
+
+  /* ==============================
+   BOTÃO DO CARD
+================================ */
+
+  .match-card-toggle {
+    width: 100%;
+
+    display: block;
+
+    border: none;
+
+    background-color: transparent;
+    color: inherit;
+
+    text-align: left;
+
+    cursor: pointer;
+  }
+
+  .match-card-toggle:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: -4px;
+  }
+
+  .match-card-toggle:active {
+    filter: brightness(0.98);
+  }
+
+  /* ==============================
+   CABEÇALHO VISUAL DA PARTIDA
+================================ */
+
+  .match-card-visual {
+    position: relative;
+
+    min-height: 132px;
+
+    padding: 20px 17px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: linear-gradient(
+      135deg,
+      rgba(24, 116, 152, 0.96),
+      rgba(8, 38, 50, 1)
+    );
+  }
+
+  .match-card-versus {
+    width: 100%;
+
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto
+      minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+  }
+
+  .match-player {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+
+    text-align: center;
+  }
+
+  .match-player-avatar {
+    width: 54px;
+    height: 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+
+    background-color: var(--color-primary);
+    color: var(--color-background);
+
+    font-family: var(--font-semibold);
+    font-size: 22px;
+    font-weight: 700;
+
+    box-shadow: 0 4px 9px rgba(0, 0, 0, 0.22);
+  }
+
+  .match-player-avatar img {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: cover;
+  }
+
+  .match-player-name {
+    width: 100%;
+
+    overflow: hidden;
+
+    color: #ffffff;
+
+    font-family: var(--font-interface);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .match-versus-label {
+    color: var(--color-primary);
+
+    font-family: var(--font-semibold);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .match-card-status {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+
+    min-height: 29px;
+
+    padding: 6px 11px;
+
+    display: inline-flex;
+    align-items: center;
+
+    border-radius: 16px;
+
+    background-color: #36ae7c;
+    color: #082632;
+
+    font-family: var(--font-semibold);
+    font-size: 12px;
+    font-weight: 700;
+
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2);
+  }
+
+  /* ==============================
+   RESUMO DA PARTIDA
+================================ */
+
+  .match-card-summary {
+    padding: 15px 14px 13px;
+  }
+
+  .match-card-title {
+    margin-bottom: 16px;
+
+    color: #000000;
+
+    font-family: var(--font-interface);
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .match-card-location {
+    display: grid;
+    grid-template-columns: 29px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+  }
+
+  .match-card-location svg {
+    width: 29px;
+    height: 35px;
+
+    color: var(--color-background);
+  }
+
+  .match-card-location p,
+  .match-card-location time {
+    color: #000000;
+
+    font-family: var(--font-interface);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+
+  .match-card-location time {
+    display: block;
+  }
+
+  /* ==============================
+   INDICAÇÃO PARA EXPANDIR
+================================ */
+
+  .match-expand-label {
+    width: 100%;
+
+    margin-top: 17px;
+    padding-top: 11px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    border-top: 1px solid #e3e3e3;
+
+    color: var(--color-background);
+
+    font-family: var(--font-semibold);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .match-expand-icon {
+    width: 21px;
+    height: 21px;
+
+    transition: transform 0.25s ease;
+  }
+
+  .match-card.is-expanded .match-expand-icon {
+    transform: rotate(180deg);
+  }
+
+  /* ==============================
+   DETALHES DA PARTIDA
+================================ */
+
+  .match-details-panel {
+    max-height: 0;
+
+    padding: 0 14px;
+
+    overflow: hidden;
+
+    border-top: 0 solid #e3e3e3;
+
+    opacity: 0;
+
+    transition:
+      max-height 0.35s ease,
+      padding 0.35s ease,
+      opacity 0.25s ease,
+      border-width 0.2s ease;
+  }
+
+  .match-card.is-expanded .match-details-panel {
+    max-height: 520px;
+
+    padding: 15px 14px 19px;
+
+    border-top-width: 1px;
+
+    opacity: 1;
+  }
+
+  .match-detail-row {
+    min-height: 37px;
+
+    padding: 8px 10px;
+
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+
+    border-radius: 11px;
+
+    background-color: #f0f2f2;
+  }
+
+  .match-detail-row + .match-detail-row {
+    margin-top: 8px;
+  }
+
+  .match-detail-row strong {
+    color: var(--color-background);
+
+    font-family: var(--font-semibold);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .match-detail-row span {
+    color: #26343a;
+
+    font-family: var(--font-interface);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.3;
+
+    overflow-wrap: anywhere;
+  }
+
+  .match-description {
+    margin-top: 13px;
+
+    color: #36464d;
+
+    font-family: var(--font-interface);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  /* ==============================
+   ESTADOS DA SEÇÃO
+================================ */
+
+  .matches-loading,
+  .matches-empty,
+  .matches-error {
+    width: calc(100vw - 52px);
+    max-width: 350px;
+    min-height: 115px;
+
+    padding: 24px 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 18px;
+
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+
+    font-family: var(--font-interface);
+    font-size: 15px;
+    line-height: 1.45;
+    text-align: center;
+  }
+
+  .matches-error {
+    color: #ffd5d5;
+  }
+
+  /* ==============================
+   CELULARES MENORES
+================================ */
+
+  @media (max-width: 360px) {
+    .matches-heading {
+      padding-right: 20px;
+      padding-left: 20px;
+    }
+
+    .matches-track {
+      padding-right: 20px;
+      padding-left: 20px;
+
+      scroll-padding-left: 20px;
+    }
+
+    .match-card {
+      width: calc(100vw - 40px);
+
+      flex-basis: calc(100vw - 40px);
+    }
+
+    .matches-loading,
+    .matches-empty,
+    .matches-error {
+      width: calc(100vw - 40px);
+    }
+
+    .matches-swipe-hint {
+      font-size: 12px;
+    }
+
+    .match-card-title {
+      font-size: 20px;
+    }
+  }
 }

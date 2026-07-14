@@ -9,10 +9,16 @@ import { authReady } from "./auth-guard.js";
 
 import {
   collection,
+  getDoc,
   getDocs,
+  doc,
   query,
   where,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+const auth = getAuth();
 
 /* ==============================
    BANNERS LOCAIS
@@ -77,6 +83,13 @@ const sideMenuNavigationLinks = document.querySelectorAll(
 );
 
 const eventsTrack = document.getElementById("events-track");
+const matchesTrack = document.getElementById("matches-track");
+
+const matchesSwipeHint = document.getElementById("matches-swipe-hint");
+
+const matchesPreferReducedMotion = window.matchMedia(
+  "(prefers-reduced-motion: reduce)",
+).matches;
 
 const eventsPreferReducedMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)",
@@ -1073,7 +1086,330 @@ async function loadEvents() {
     `;
   }
 }
+/* ==============================
+   MINHAS PARTIDAS
+================================ */
 
+function getMatchText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function createMatchDate(value) {
+  if (
+    value &&
+    typeof value === "object" &&
+    typeof value.toDate === "function"
+  ) {
+    const date = value.toDate();
+
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  if (!value) {
+    return null;
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/* ==============================
+   PERFIL DO ADVERSÁRIO
+================================ */
+
+async function loadMatchOpponentProfile(userId) {
+  if (!userId) {
+    return null;
+  }
+
+  try {
+    const profileReference = doc(db, "perfisPublicos", userId);
+
+    const profileSnapshot = await getDoc(profileReference);
+
+    if (!profileSnapshot.exists()) {
+      return null;
+    }
+
+    return profileSnapshot.data();
+  } catch (error) {
+    console.error(
+      "[Minhas Partidas] Erro ao carregar o perfil do adversário:",
+      error,
+    );
+
+    return null;
+  }
+}
+
+/* ==============================
+   NORMALIZAR PARTIDA
+================================ */
+
+async function normalizeMatchDocument(documentSnapshot, currentUserId) {
+  const data = documentSnapshot.data();
+
+  const participants = Array.isArray(data.participantes)
+    ? data.participantes
+    : [];
+
+  if (!participants.includes(currentUserId)) {
+    return null;
+  }
+
+  const opponentId =
+    participants.find((participantId) => {
+      return participantId !== currentUserId;
+    }) || "";
+
+  const opponentProfile = await loadMatchOpponentProfile(opponentId);
+
+  const opponentName = getMatchText(opponentProfile?.nome) || "Jogador Origo";
+
+  const opponentPhoto =
+    getMatchText(opponentProfile?.fotoURL) || "assets/banner-1.jpg";
+
+  const matchDate = createMatchDate(data.dataHora);
+
+  const time = matchDate
+    ? `${String(matchDate.getHours()).padStart(2, "0")}:${String(
+        matchDate.getMinutes(),
+      ).padStart(2, "0")}`
+    : "";
+
+  const tcg = getMatchText(data.tcg) || "TCG";
+
+  const format = getMatchText(data.formato) || "Formato a definir";
+
+  const modality =
+    getMatchText(data.modalidade).toLowerCase() === "online"
+      ? "Online"
+      : "Presencial";
+
+  const savedLocation = getMatchText(data.local);
+
+  const location =
+    modality === "Online"
+      ? "Sala online da Origo"
+      : savedLocation || "Local a definir";
+
+  const status = getMatchText(data.status).toLowerCase();
+
+  return {
+    id: documentSnapshot.id,
+
+    title: `${tcg}: você x ${opponentName}`,
+
+    category: modality,
+
+    image: opponentPhoto,
+
+    location,
+
+    city: "",
+
+    time,
+
+    description: `Partida confirmada de ${tcg} com ${opponentName}.`,
+
+    format,
+
+    eventDate: matchDate,
+
+    sortDate: matchDate?.getTime() ?? Number.MAX_SAFE_INTEGER,
+
+    status,
+  };
+}
+
+/* ==============================
+   INTERAÇÃO DOS CARDS
+================================ */
+
+function initializeMatchCards() {
+  if (!matchesTrack) {
+    return;
+  }
+
+  const matchCards = matchesTrack.querySelectorAll(".event-card");
+
+  matchCards.forEach((card) => {
+    const toggle = card.querySelector(".event-card-toggle");
+
+    toggle?.addEventListener("click", () => {
+      const cardWasExpanded = card.classList.contains("is-expanded");
+
+      matchCards.forEach((otherCard) => {
+        otherCard.classList.remove("is-expanded");
+
+        const otherToggle = otherCard.querySelector(".event-card-toggle");
+
+        const otherDetails = otherCard.querySelector(".event-details-panel");
+
+        const otherLabel = otherCard.querySelector(".event-expand-text");
+
+        otherToggle?.setAttribute("aria-expanded", "false");
+
+        otherDetails?.setAttribute("aria-hidden", "true");
+
+        if (otherLabel) {
+          otherLabel.textContent = "Ver detalhes";
+        }
+      });
+
+      if (cardWasExpanded) {
+        return;
+      }
+
+      card.classList.add("is-expanded");
+
+      const details = card.querySelector(".event-details-panel");
+
+      const label = card.querySelector(".event-expand-text");
+
+      toggle.setAttribute("aria-expanded", "true");
+
+      details?.setAttribute("aria-hidden", "false");
+
+      if (label) {
+        label.textContent = "Ocultar detalhes";
+      }
+
+      window.setTimeout(() => {
+        const targetPosition =
+          card.offsetLeft - (matchesTrack.clientWidth - card.offsetWidth) / 2;
+
+        matchesTrack.scrollTo({
+          left: Math.max(0, targetPosition),
+
+          behavior: matchesPreferReducedMotion ? "auto" : "smooth",
+        });
+      }, 80);
+    });
+  });
+
+  const matchImages = matchesTrack.querySelectorAll(".event-card-image");
+
+  matchImages.forEach((image) => {
+    image.addEventListener(
+      "error",
+      () => {
+        if (!image.src.endsWith("banner-1.jpg")) {
+          image.src = "assets/banner-1.jpg";
+        }
+      },
+      {
+        once: true,
+      },
+    );
+  });
+}
+
+/* ==============================
+   CARREGAR MINHAS PARTIDAS
+================================ */
+
+async function loadMyMatches() {
+  if (!matchesTrack) {
+    return;
+  }
+
+  matchesTrack.innerHTML = `
+    <p class="events-loading">
+      Carregando suas partidas...
+    </p>
+  `;
+
+  if (matchesSwipeHint) {
+    matchesSwipeHint.hidden = true;
+  }
+
+  try {
+    await authReady;
+
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      matchesTrack.innerHTML = `
+        <p class="events-loading">
+          Entre na sua conta para visualizar suas partidas.
+        </p>
+      `;
+
+      return;
+    }
+
+    const matchesQuery = query(
+      collection(db, "partidas"),
+
+      where("participantes", "array-contains", currentUser.uid),
+    );
+
+    const snapshot = await getDocs(matchesQuery);
+
+    const normalizedMatches = await Promise.all(
+      snapshot.docs.map((documentSnapshot) => {
+        return normalizeMatchDocument(documentSnapshot, currentUser.uid);
+      }),
+    );
+
+    const now = Date.now();
+
+    const matches = normalizedMatches
+      .filter(Boolean)
+      .filter((match) => {
+        const isConfirmed = match.status === "confirmada";
+
+        const hasValidFutureDate =
+          match.eventDate && match.eventDate.getTime() >= now;
+
+        return isConfirmed && hasValidFutureDate;
+      })
+      .sort((first, second) => {
+        return first.sortDate - second.sortDate;
+      });
+
+    if (!matches.length) {
+      matchesTrack.innerHTML = `
+        <p class="events-loading">
+          Você não possui partidas futuras confirmadas.
+        </p>
+      `;
+
+      return;
+    }
+
+    matchesTrack.innerHTML = matches
+      .map((match, index) => {
+        /*
+         * O número 1000 impede que os IDs dos detalhes
+         * entrem em conflito com os cards de Eventos.
+         */
+        return createEventCardHTML(match, index + 1000);
+      })
+      .join("");
+
+    if (matchesSwipeHint) {
+      matchesSwipeHint.hidden = matches.length <= 1;
+    }
+
+    initializeMatchCards();
+
+    console.log(`[Minhas Partidas] ${matches.length} partida(s) carregada(s).`);
+  } catch (error) {
+    console.error(
+      "[Minhas Partidas] Não foi possível carregar as partidas:",
+      error,
+    );
+
+    matchesTrack.innerHTML = `
+      <p class="events-loading">
+        Não foi possível carregar suas partidas.
+      </p>
+    `;
+  }
+}
 /* ==============================
    PRÉVIA DO MAPA
 ================================ */
@@ -1322,6 +1658,8 @@ async function initializePrincipalPage() {
   initializeCarousel();
 
   await loadEvents();
+
+  await loadMyMatches();
 
   initializeMapPreview();
 }
