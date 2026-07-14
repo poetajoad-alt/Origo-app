@@ -10,11 +10,13 @@ import { authReady } from "./auth-guard.js";
 
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
   query,
   serverTimestamp,
+  setDoc,
   where,
   writeBatch,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
@@ -48,6 +50,7 @@ let receivedInvites = [];
 let activeConnections = [];
 
 let actionInProgress = false;
+let classificationInProgress = false;
 
 /* ==============================
    SEGURANÇA
@@ -240,7 +243,42 @@ async function loadReceivedInvites(userId) {
 
   return invitations;
 }
+/* ==============================
+   CLASSIFICAÇÃO DA CONEXÃO
+================================ */
 
+async function loadConnectionClassification(connectionId, userId) {
+  if (!connectionId || !userId) {
+    return "";
+  }
+
+  try {
+    const classificationReference = doc(
+      db,
+      "conexoes",
+      connectionId,
+      "classificacoes",
+      userId,
+    );
+
+    const snapshot = await getDoc(classificationReference);
+
+    if (!snapshot.exists()) {
+      return "";
+    }
+
+    const classification = snapshot.data().tipo;
+
+    return ["amigo", "rival"].includes(classification) ? classification : "";
+  } catch (error) {
+    console.error(
+      "[Conexões] Não foi possível carregar a classificação:",
+      error,
+    );
+
+    return "";
+  }
+}
 /* ==============================
    CARREGAR CONEXÕES
 ================================ */
@@ -267,7 +305,11 @@ async function loadActiveConnections(userId) {
           return participantId !== userId;
         }) || "";
 
-      const otherProfile = await loadPublicProfile(otherUserId);
+      const [otherProfile, classification] = await Promise.all([
+        loadPublicProfile(otherUserId),
+
+        loadConnectionClassification(documentSnapshot.id, userId),
+      ]);
 
       return {
         id: documentSnapshot.id,
@@ -277,6 +319,7 @@ async function loadActiveConnections(userId) {
         otherUserId,
 
         otherProfile,
+        classification,
       };
     }),
   );
@@ -410,8 +453,28 @@ function renderActiveConnections() {
 
       const playerName = profile.nome?.trim() || "Jogador Origo";
 
+      const classification = connection.classification || "";
+
+      const classificationBadge =
+        classification === "amigo"
+          ? `
+                <span class="connection-badge is-friend">
+                  Amigo
+                </span>
+              `
+          : classification === "rival"
+            ? `
+                  <span class="connection-badge is-rival">
+                    Rival
+                  </span>
+                `
+            : "";
+
       return `
-          <article class="connection-card">
+          <article
+            class="connection-card"
+            data-connection-card="${escapeHTML(connection.id)}"
+          >
             ${createAvatarHTML(profile, playerName)}
 
             <div class="connection-card-content">
@@ -423,16 +486,53 @@ function renderActiveConnections() {
                 ${escapeHTML(createProfileMeta(profile))}
               </p>
 
-              <span class="connection-badge">
-                Conexão ativa
-              </span>
+              ${classificationBadge}
+
+              <div
+                class="connection-classification"
+                role="group"
+                aria-label="Classificar ${escapeHTML(playerName)}"
+              >
+                <button
+                  class="classification-button ${
+                    classification === "amigo" ? "is-selected" : ""
+                  }"
+                  type="button"
+                  data-connection-id="${escapeHTML(connection.id)}"
+                  data-connection-classification="amigo"
+                  aria-pressed="${classification === "amigo"}"
+                >
+                  Amigo
+                </button>
+
+                <button
+                  class="classification-button ${
+                    classification === "rival" ? "is-selected is-rival" : ""
+                  }"
+                  type="button"
+                  data-connection-id="${escapeHTML(connection.id)}"
+                  data-connection-classification="rival"
+                  aria-pressed="${classification === "rival"}"
+                >
+                  Rival
+                </button>
+
+                <button
+                  class="classification-button classification-clear-button"
+                  type="button"
+                  data-connection-id="${escapeHTML(connection.id)}"
+                  data-connection-classification=""
+                  aria-pressed="${classification === ""}"
+                >
+                  Remover
+                </button>
+              </div>
             </div>
           </article>
         `;
     })
     .join("");
 }
-
 /* ==============================
    AÇÕES DOS CONVITES
 ================================ */
@@ -552,7 +652,97 @@ async function respondToInvite(inviteId, action) {
     actionInProgress = false;
   }
 }
+/* ==============================
+   SALVAR CLASSIFICAÇÃO
+================================ */
 
+function setClassificationLoading(connectionId, isLoading) {
+  const card = activeConnectionsList?.querySelector(
+    `[data-connection-card="${CSS.escape(connectionId)}"]`,
+  );
+
+  if (!card) {
+    return;
+  }
+
+  const buttons = card.querySelectorAll("[data-connection-classification]");
+
+  buttons.forEach((button) => {
+    button.disabled = isLoading;
+  });
+}
+
+async function saveConnectionClassification(connectionId, classification) {
+  if (classificationInProgress || !currentUser) {
+    return;
+  }
+
+  if (classification && !["amigo", "rival"].includes(classification)) {
+    return;
+  }
+
+  const connection = activeConnections.find((item) => item.id === connectionId);
+
+  if (!connection) {
+    showConnectionsMessage("A conexão não foi encontrada.", "error");
+
+    return;
+  }
+
+  clearConnectionsMessage();
+
+  classificationInProgress = true;
+
+  setClassificationLoading(connectionId, true);
+
+  try {
+    const classificationReference = doc(
+      db,
+      "conexoes",
+      connectionId,
+      "classificacoes",
+      currentUser.uid,
+    );
+
+    if (classification) {
+      await setDoc(classificationReference, {
+        tipo: classification,
+
+        atualizadoEm: serverTimestamp(),
+      });
+    } else {
+      await deleteDoc(classificationReference);
+    }
+
+    connection.classification = classification;
+
+    renderActiveConnections();
+
+    const successMessages = {
+      amigo: "Conexão classificada como amigo.",
+
+      rival: "Conexão classificada como rival.",
+    };
+
+    showConnectionsMessage(
+      successMessages[classification] || "Classificação removida.",
+      "success",
+    );
+  } catch (error) {
+    console.error("[Conexões] Não foi possível salvar a classificação:", error);
+
+    showConnectionsMessage(
+      error?.code === "permission-denied"
+        ? "O Firebase bloqueou a classificação. Confira as regras publicadas."
+        : "Não foi possível salvar a classificação.",
+      "error",
+    );
+
+    setClassificationLoading(connectionId, false);
+  } finally {
+    classificationInProgress = false;
+  }
+}
 /* ==============================
    EVENTOS
 ================================ */
@@ -574,7 +764,23 @@ receivedInvitesList?.addEventListener("click", (event) => {
 
   respondToInvite(inviteId, action);
 });
+activeConnectionsList?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-connection-classification]");
 
+  if (!button) {
+    return;
+  }
+
+  const connectionId = button.dataset.connectionId || "";
+
+  const classification = button.dataset.connectionClassification || "";
+
+  if (!connectionId) {
+    return;
+  }
+
+  saveConnectionClassification(connectionId, classification);
+});
 /* ==============================
    CARREGAMENTO GERAL
 ================================ */

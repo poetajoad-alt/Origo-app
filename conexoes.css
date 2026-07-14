@@ -493,4 +493,94 @@ body {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
+  /* ==============================
+   CLASSIFICAÇÃO DA CONEXÃO
+================================ */
+
+  .connection-badge.is-friend {
+    background-color: rgba(54, 174, 124, 0.14);
+    color: #187a55;
+  }
+
+  .connection-badge.is-rival {
+    background-color: rgba(235, 83, 83, 0.14);
+    color: #b63838;
+  }
+
+  .connection-classification {
+    width: 100%;
+
+    margin-top: 12px;
+
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .classification-button {
+    min-height: 34px;
+
+    padding: 6px 11px;
+
+    border: 1px solid #d5dcde;
+    border-radius: 17px;
+
+    background-color: #eef1f1;
+    color: var(--color-background);
+
+    font-family: var(--font-semibold);
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .classification-button:hover {
+    transform: scale(1.03);
+
+    border-color: var(--color-blue);
+  }
+
+  .classification-button:active {
+    transform: scale(0.96);
+  }
+
+  .classification-button.is-selected {
+    border-color: var(--color-green);
+
+    background-color: var(--color-green);
+    color: #ffffff;
+  }
+
+  .classification-button.is-selected.is-rival {
+    border-color: var(--color-red);
+
+    background-color: var(--color-red);
+    color: #ffffff;
+  }
+
+  .classification-clear-button {
+    background-color: transparent;
+    color: var(--color-soft-text);
+  }
+
+  .classification-button:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.55;
+
+    transform: none;
+  }
+
+  .classification-button:focus-visible {
+    outline: 3px solid var(--color-yellow);
+    outline-offset: 2px;
+  }
 }
