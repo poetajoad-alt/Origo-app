@@ -1,0 +1,496 @@
+/* ==============================
+   CONFIGURAÇÕES GERAIS
+================================ */
+
+:root {
+  --color-background: #082632;
+  --color-blue: #187498;
+  --color-yellow: #f9d923;
+  --color-red: #eb5353;
+  --color-green: #36ae7c;
+
+  --color-white: #fcfcfc;
+  --color-text: #10191d;
+  --color-soft-text: #667379;
+  --color-border: #dce2e4;
+
+  --mobile-max-width: 430px;
+
+  --font-interface: "Segoe UI", Arial, sans-serif;
+  --font-semibold: "Segoe UI Semibold", "Segoe UI", Arial, sans-serif;
+  --font-black: "Segoe UI Black", "Segoe UI", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  background-color: var(--color-background);
+
+  font-family: var(--font-interface);
+}
+
+/* ==============================
+   PÁGINA
+================================ */
+
+.connections-page {
+  width: 100%;
+  max-width: var(--mobile-max-width);
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  margin: 0 auto;
+
+  background-color: #eef1f1;
+
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
+}
+
+/* ==============================
+   CABEÇALHO
+================================ */
+
+.connections-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  min-height: 72px;
+
+  padding: env(safe-area-inset-top) 12px 0;
+
+  display: grid;
+  grid-template-columns: 44px 1fr 76px;
+  align-items: center;
+
+  background-color: var(--color-background);
+}
+
+.connections-back-button {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  text-decoration: none;
+
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.connections-back-button svg {
+  width: 29px;
+  height: 29px;
+}
+
+.connections-back-button:hover {
+  transform: scale(1.05);
+
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.connections-back-button:active {
+  transform: scale(0.95);
+}
+
+.connections-back-button:focus-visible {
+  outline: 3px solid var(--color-yellow);
+  outline-offset: 2px;
+}
+
+.connections-title {
+  color: var(--color-yellow);
+
+  font-family: var(--font-black);
+  font-size: 25px;
+  font-weight: 900;
+  line-height: 1;
+
+  text-align: center;
+}
+
+.connections-logo-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  text-decoration: none;
+}
+
+.connections-logo {
+  display: block;
+
+  width: auto;
+  max-width: 70px;
+  height: 21px;
+
+  object-fit: contain;
+}
+
+/* ==============================
+   CONTEÚDO
+================================ */
+
+.connections-content {
+  padding: 20px 16px max(30px, env(safe-area-inset-bottom));
+}
+
+.connections-message {
+  margin-bottom: 16px;
+  padding: 11px 13px;
+
+  border-radius: 14px;
+
+  background-color: var(--color-background);
+  color: #ffffff;
+
+  font-size: 14px;
+  line-height: 1.4;
+
+  box-shadow: 0 3px 8px rgba(8, 38, 50, 0.18);
+}
+
+.connections-message.is-success {
+  background-color: #187a55;
+}
+
+.connections-message.is-error {
+  background-color: #b73c3c;
+}
+
+/* ==============================
+   SEÇÕES
+================================ */
+
+.connections-section + .connections-section {
+  margin-top: 28px;
+}
+
+.connections-section-heading {
+  margin-bottom: 13px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.connections-eyebrow {
+  color: var(--color-blue);
+
+  font-family: var(--font-semibold);
+  font-size: 12px;
+  font-weight: 600;
+
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.connections-section-title {
+  margin-top: 3px;
+
+  color: var(--color-background);
+
+  font-family: var(--font-black);
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.connections-count {
+  min-width: 31px;
+  height: 31px;
+
+  padding: 4px 9px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 16px;
+
+  background-color: var(--color-yellow);
+  color: var(--color-background);
+
+  font-family: var(--font-semibold);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ==============================
+   LISTAS
+================================ */
+
+.invite-list,
+.connection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.connections-loading,
+.connections-empty {
+  padding: 22px 16px;
+
+  border: 1px dashed #c8d0d2;
+  border-radius: 17px;
+
+  background-color: rgba(255, 255, 255, 0.55);
+  color: var(--color-soft-text);
+
+  font-size: 14px;
+  line-height: 1.45;
+
+  text-align: center;
+}
+
+/* ==============================
+   CARTÕES
+================================ */
+
+.invite-card,
+.connection-card {
+  padding: 15px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  background-color: var(--color-white);
+
+  box-shadow: 0 4px 12px rgba(8, 38, 50, 0.1);
+}
+
+.connection-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-profile {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.card-avatar {
+  width: 51px;
+  height: 51px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  border: 3px solid rgba(24, 116, 152, 0.18);
+  border-radius: 50%;
+
+  background-color: var(--color-blue);
+  color: #ffffff;
+
+  font-family: var(--font-black);
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.card-avatar img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+.card-profile-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.card-name {
+  color: var(--color-background);
+
+  font-family: var(--font-black);
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.2;
+
+  overflow-wrap: anywhere;
+}
+
+.card-meta {
+  margin-top: 3px;
+
+  color: var(--color-soft-text);
+
+  font-size: 13px;
+  line-height: 1.35;
+
+  overflow-wrap: anywhere;
+}
+
+.invite-message {
+  margin-top: 14px;
+  padding: 11px 13px;
+
+  border-left: 4px solid var(--color-yellow);
+  border-radius: 0 12px 12px 0;
+
+  background-color: #f1f3f3;
+  color: var(--color-background);
+
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.invite-date {
+  margin-top: 8px;
+
+  color: #788287;
+
+  font-size: 12px;
+}
+
+/* ==============================
+   AÇÕES DO CONVITE
+================================ */
+
+.invite-actions {
+  margin-top: 14px;
+
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 9px;
+}
+
+.invite-reject-button,
+.invite-accept-button {
+  min-height: 45px;
+
+  padding: 9px 12px;
+
+  border: none;
+  border-radius: 14px;
+
+  font-family: var(--font-semibold);
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+.invite-reject-button {
+  border: 1px solid #d9dfe1;
+
+  background-color: #ecefef;
+  color: var(--color-background);
+}
+
+.invite-accept-button {
+  background-color: var(--color-yellow);
+  color: var(--color-background);
+
+  box-shadow: 0 3px 7px rgba(8, 38, 50, 0.18);
+}
+
+.invite-reject-button:hover,
+.invite-accept-button:hover {
+  transform: scale(1.02);
+}
+
+.invite-reject-button:active,
+.invite-accept-button:active {
+  transform: scale(0.97);
+}
+
+.invite-reject-button:disabled,
+.invite-accept-button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.6;
+
+  transform: none;
+}
+
+/* ==============================
+   CONEXÃO
+================================ */
+
+.connection-card-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.connection-badge {
+  margin-top: 7px;
+  padding: 5px 9px;
+
+  display: inline-flex;
+  align-items: center;
+
+  border-radius: 12px;
+
+  background-color: rgba(54, 174, 124, 0.14);
+  color: #187a55;
+
+  font-family: var(--font-semibold);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ==============================
+   TELAS MENORES
+================================ */
+
+@media (max-width: 360px) {
+  .connections-content {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .connections-title {
+    font-size: 23px;
+  }
+
+  .invite-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==============================
+   REDUÇÃO DE MOVIMENTO
+================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

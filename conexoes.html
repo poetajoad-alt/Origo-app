@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#082632">
+
+  <title>Origo | Conexões</title>
+
+  <link rel="stylesheet" href="conexoes.css">
+
+  <script type="module" src="auth-guard.js"></script>
+</head>
+
+<body>
+  <main class="connections-page">
+
+    <header class="connections-header">
+
+      <a class="connections-back-button" href="principal.html" aria-label="Voltar para a página principal">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5L8 12L15 19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+
+      <h1 class="connections-title">
+        Conexões
+      </h1>
+
+      <a class="connections-logo-link" href="principal.html" aria-label="Ir para o início">
+        <img class="connections-logo" src="assets/origo-vector.svg" alt="Origo">
+      </a>
+
+    </header>
+
+    <div class="connections-content">
+
+      <p class="connections-message" id="connections-message" role="status" aria-live="polite" hidden></p>
+
+      <!-- Convites recebidos -->
+      <section class="connections-section" aria-labelledby="received-invites-title">
+        <div class="connections-section-heading">
+
+          <div>
+            <span class="connections-eyebrow">
+              Novidades
+            </span>
+
+            <h2 class="connections-section-title" id="received-invites-title">
+              Convites recebidos
+            </h2>
+          </div>
+
+          <span class="connections-count" id="received-invites-count">
+            0
+          </span>
+
+        </div>
+
+        <div class="invite-list" id="received-invites-list">
+          <p class="connections-loading">
+            Carregando convites...
+          </p>
+        </div>
+      </section>
+
+      <!-- Conexões aceitas -->
+      <section class="connections-section" aria-labelledby="active-connections-title">
+        <div class="connections-section-heading">
+
+          <div>
+            <span class="connections-eyebrow">
+              Comunidade
+            </span>
+
+            <h2 class="connections-section-title" id="active-connections-title">
+              Minhas conexões
+            </h2>
+          </div>
+
+          <span class="connections-count" id="active-connections-count">
+            0
+          </span>
+
+        </div>
+
+        <div class="connection-list" id="active-connections-list">
+          <p class="connections-loading">
+            Carregando conexões...
+          </p>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <script type="module" src="conexoes.js"></script>
+</body>
+
+</html>
