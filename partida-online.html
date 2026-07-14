@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <meta name="theme-color" content="#082632">
+
+  <title>Partida Online | Origo</title>
+
+  <link rel="stylesheet" href="base.css">
+
+  <link rel="stylesheet" href="partida-online.css?v=1">
+
+  <script src="https://meet.jit.si/external_api.js"></script>
+
+  <script type="module" src="partida-online.js?v=1"></script>
+</head>
+
+<body>
+  <main class="online-match-page">
+    <header class="online-match-header">
+      <a class="online-match-back" href="conexoes.html" aria-label="Voltar para conexões">
+        ←
+      </a>
+
+      <div>
+        <p class="online-match-eyebrow">
+          Origo
+        </p>
+
+        <h1 class="online-match-title">
+          Partida online
+        </h1>
+      </div>
+    </header>
+
+    <section class="online-match-status" id="online-match-loading" aria-live="polite">
+      <div class="online-match-spinner" aria-hidden="true"></div>
+
+      <p>
+        Preparando a sala...
+      </p>
+    </section>
+
+    <section class="online-match-error" id="online-match-error" role="alert" hidden>
+      <h2>
+        Não foi possível abrir a partida
+      </h2>
+
+      <p id="online-match-error-message">
+        Verifique os dados da partida e tente novamente.
+      </p>
+
+      <a class="online-match-error-button" href="conexoes.html">
+        Voltar para conexões
+      </a>
+    </section>
+
+    <section class="online-match-content" id="online-match-content" hidden>
+      <div class="online-match-information">
+        <div>
+          <span class="online-match-label">
+            TCG
+          </span>
+
+          <strong id="online-match-tcg">
+            —
+          </strong>
+        </div>
+
+        <div>
+          <span class="online-match-label">
+            Formato
+          </span>
+
+          <strong id="online-match-format">
+            —
+          </strong>
+        </div>
+
+        <div>
+          <span class="online-match-label">
+            Horário
+          </span>
+
+          <strong id="online-match-date">
+            —
+          </strong>
+        </div>
+      </div>
+
+      <div class="online-match-video" id="online-match-video" aria-label="Sala de vídeo da partida"></div>
+
+      <p class="online-match-permission-hint">
+        Autorize o uso da câmera e do microfone quando o navegador solicitar.
+      </p>
+    </section>
+  </main>
+
+  <script type="module" src="partida-online.js?v=1"></script>
+</body>
+
+</html>

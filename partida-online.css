@@ -1,0 +1,285 @@
+/* ==============================
+   PARTIDA ONLINE
+================================ */
+
+:root {
+  --online-background: #082632;
+  --online-blue: #187498;
+  --online-yellow: #f9d923;
+  --online-green: #36ae7c;
+  --online-red: #eb5353;
+  --online-white: #ffffff;
+  --online-soft: #eef2f3;
+  --online-text-soft: #aebdc2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100dvh;
+  background-color: var(--online-background);
+  color: var(--online-white);
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.online-match-page {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: calc(20px + env(safe-area-inset-top)) 18px
+    calc(24px + env(safe-area-inset-bottom));
+  background-color: var(--online-background);
+}
+
+/* ==============================
+   CABEÇALHO
+================================ */
+
+.online-match-header {
+  width: 100%;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.online-match-back {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--online-white);
+  font-size: 25px;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.online-match-back:active {
+  transform: scale(0.95);
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.online-match-eyebrow {
+  margin: 0 0 3px;
+  color: var(--online-yellow);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.online-match-title {
+  margin: 0;
+  color: var(--online-white);
+  font-size: 25px;
+  line-height: 1.15;
+}
+
+/* ==============================
+   CARREGAMENTO
+================================ */
+
+.online-match-status {
+  width: 100%;
+  min-height: 320px;
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background-color: rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.online-match-status p {
+  margin: 0;
+  color: var(--online-text-soft);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.online-match-spinner {
+  width: 42px;
+  height: 42px;
+  border: 4px solid rgba(255, 255, 255, 0.16);
+  border-top-color: var(--online-yellow);
+  border-radius: 50%;
+  animation: online-match-spin 0.8s linear infinite;
+}
+
+@keyframes online-match-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==============================
+   CONTEÚDO DA PARTIDA
+================================ */
+
+.online-match-content {
+  width: 100%;
+}
+
+.online-match-content[hidden],
+.online-match-status[hidden],
+.online-match-error[hidden] {
+  display: none;
+}
+
+.online-match-information {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  background-color: var(--online-white);
+  color: var(--online-background);
+}
+
+.online-match-information > div {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 12px;
+  background-color: var(--online-soft);
+}
+
+.online-match-label {
+  margin-bottom: 4px;
+  display: block;
+  color: #607078;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.online-match-information strong {
+  display: block;
+  overflow: hidden;
+  color: var(--online-background);
+  font-size: 13px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==============================
+   SALA DE VÍDEO
+================================ */
+
+.online-match-video {
+  width: 100%;
+  height: min(62dvh, 560px);
+  min-height: 430px;
+  overflow: hidden;
+  border: 2px solid rgba(249, 217, 35, 0.7);
+  border-radius: 20px;
+  background-color: #000000;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.28);
+}
+
+.online-match-video iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+  display: block;
+}
+
+.online-match-permission-hint {
+  margin: 12px 4px 0;
+  color: var(--online-text-soft);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* ==============================
+   ERRO
+================================ */
+
+.online-match-error {
+  width: 100%;
+  padding: 26px 20px;
+  border: 1px solid rgba(235, 83, 83, 0.38);
+  border-radius: 20px;
+  background-color: rgba(235, 83, 83, 0.12);
+  text-align: center;
+}
+
+.online-match-error h2 {
+  margin: 0 0 10px;
+  color: var(--online-white);
+  font-size: 20px;
+}
+
+.online-match-error p {
+  margin: 0;
+  color: #ffdada;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.online-match-error-button {
+  min-height: 46px;
+  margin-top: 20px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--online-yellow);
+  color: var(--online-background);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* ==============================
+   TELAS MENORES
+================================ */
+
+@media (max-width: 360px) {
+  .online-match-page {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .online-match-information {
+    grid-template-columns: 1fr;
+  }
+
+  .online-match-information strong {
+    white-space: normal;
+  }
+
+  .online-match-video {
+    height: 58dvh;
+    min-height: 390px;
+  }
+}
