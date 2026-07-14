@@ -10,9 +10,12 @@ import { authReady } from "./auth-guard.js";
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
+  waitForPendingWrites,
   where,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
@@ -1184,7 +1187,57 @@ async function pendingInviteExists(senderId, recipientId) {
     return data.destinatarioId === recipientId && data.status === "pendente";
   });
 }
+/* ==============================
+   VALIDAR PERFIL DO REMETENTE
+================================ */
 
+async function currentUserHasValidPublicProfile(userId) {
+  if (!userId) {
+    return false;
+  }
+
+  const profileReference = doc(db, "perfisPublicos", userId);
+
+  const profileSnapshot = await getDoc(profileReference);
+
+  if (!profileSnapshot.exists()) {
+    return false;
+  }
+
+  const profile = profileSnapshot.data();
+
+  const latitude = Number(profile.latitude);
+
+  const longitude = Number(profile.longitude);
+
+  return (
+    profile.uid === userId &&
+    profile.tipo === "player" &&
+    profile.ativo === true &&
+    Number.isFinite(latitude) &&
+    latitude >= -90 &&
+    latitude <= 90 &&
+    Number.isFinite(longitude) &&
+    longitude >= -180 &&
+    longitude <= 180
+  );
+}
+
+function showLocationRequiredWarning() {
+  showInviteFormMessage(
+    "Ative sua localização em Meu Perfil antes de enviar convites.",
+  );
+
+  const shouldOpenProfile = window.confirm(
+    "Para enviar convites, você precisa ativar sua localização em Meu Perfil.\n\n" +
+      "Isso cria seu perfil público e permite que o Origo confirme sua presença na comunidade.\n\n" +
+      "Deseja abrir Meu Perfil agora?",
+  );
+
+  if (shouldOpenProfile) {
+    window.location.href = "meu-perfil.html";
+  }
+}
 function setInviteSubmitting(isSubmitting) {
   inviteIsSubmitting = isSubmitting;
 
@@ -1245,6 +1298,23 @@ async function sendInvite() {
   setInviteSubmitting(true);
 
   try {
+    /*
+     * Confirma que o remetente realmente
+     * possui um perfil público ativo e
+     * coordenadas válidas.
+     */
+    const senderProfileIsValid = await currentUserHasValidPublicProfile(
+      currentUser.uid,
+    );
+
+    if (!senderProfileIsValid) {
+      setInviteSubmitting(false);
+
+      showLocationRequiredWarning();
+
+      return;
+    }
+
     const alreadyExists = await pendingInviteExists(
       currentUser.uid,
       selectedPlayerPoint.id,
@@ -1264,8 +1334,10 @@ async function sendInvite() {
 
       return;
     }
+
     const recipientName = selectedPlayerPoint.name;
-    await addDoc(collection(db, "convites"), {
+
+    const inviteReference = await addDoc(collection(db, "convites"), {
       remetenteId: currentUser.uid,
 
       destinatarioId: selectedPlayerPoint.id,
@@ -1285,10 +1357,22 @@ async function sendInvite() {
       mensagem: selectedInviteMessage,
 
       status: "pendente",
+
       criadoEm: serverTimestamp(),
 
       atualizadoEm: serverTimestamp(),
     });
+
+    /*
+     * Aguarda o Firestore confirmar as
+     * gravações pendentes antes de mostrar
+     * a mensagem de sucesso.
+     */
+    await waitForPendingWrites(db);
+
+    if (!inviteReference?.id) {
+      throw new Error("O Firestore não retornou o ID do convite.");
+    }
 
     setInviteSubmitting(false);
 
@@ -1305,15 +1389,21 @@ async function sendInvite() {
     setInviteSubmitting(false);
 
     const errorMessages = {
-      "permission-denied": "Você não tem permissão para enviar este convite.",
+      "permission-denied":
+        "O convite foi bloqueado. Confira se sua localização está ativa em Meu Perfil.",
 
       unavailable: "O serviço está temporariamente indisponível.",
+
+      unauthenticated: "Sua sessão expirou. Entre novamente no Origo.",
     };
 
-    showMapStatus(
-      errorMessages[error?.code] || "Não foi possível enviar o convite.",
-      5000,
-    );
+    const errorMessage =
+      errorMessages[error?.code] ||
+      "Não foi possível enviar o convite. Tente novamente.";
+
+    showInviteFormMessage(errorMessage);
+
+    showMapStatus(errorMessage, 6000);
   }
 }
 /* ==============================
