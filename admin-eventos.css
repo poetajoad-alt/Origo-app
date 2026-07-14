@@ -105,7 +105,7 @@ button {
     max(16px, env(safe-area-inset-left));
 
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
   gap: 12px;
 
@@ -132,6 +132,12 @@ button {
 .admin-back-button svg {
   width: 24px;
   height: 24px;
+}
+.admin-header-placeholder {
+  width: 42px;
+  height: 42px;
+
+  display: block;
 }
 
 .admin-header-information {
@@ -179,6 +185,179 @@ button {
   margin: 0 auto;
   padding: 22px 16px calc(50px + env(safe-area-inset-bottom));
 }
+/* ==============================
+   BARRA DO PAINEL
+================================ */
+
+.admin-toolbar {
+  position: relative;
+  z-index: 15;
+
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: 92px minmax(0, 280px);
+  align-items: center;
+  justify-content: start;
+  gap: 10px;
+}
+
+.admin-new-control {
+  position: relative;
+}
+
+.admin-new-button {
+  width: 92px;
+  min-height: 46px;
+
+  padding: 0 16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  border-radius: 12px;
+
+  background-color: var(--color-primary);
+  color: var(--color-background);
+
+  font-size: 14px;
+  font-weight: 800;
+
+  box-shadow: 0 4px 9px rgba(8, 38, 50, 0.18);
+
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
+}
+
+.admin-new-button span {
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.admin-new-button:active {
+  transform: scale(0.97);
+}
+
+.admin-new-button[aria-expanded="true"] {
+  filter: brightness(0.96);
+}
+
+/* ==============================
+   MENU DO BOTÃO NOVO
+================================ */
+
+.admin-new-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+
+  width: 190px;
+
+  padding: 7px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+
+  background-color: #ffffff;
+
+  box-shadow:
+    0 10px 24px rgba(8, 38, 50, 0.18),
+    0 3px 8px rgba(8, 38, 50, 0.08);
+}
+
+.admin-new-menu-option {
+  width: 100%;
+  min-height: 43px;
+
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+
+  border-radius: 10px;
+
+  background-color: transparent;
+  color: var(--color-background);
+
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.admin-new-menu-option:hover,
+.admin-new-menu-option:focus-visible {
+  background-color: var(--color-surface);
+  color: var(--color-blue);
+
+  outline: none;
+}
+
+.admin-new-menu-option:active {
+  background-color: #e6edef;
+}
+
+/* ==============================
+   SELETOR EVENTOS E LOJAS
+================================ */
+
+.admin-mode-selector {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+
+  padding: 4px;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+
+  border: 1px solid #cad5d8;
+  border-radius: 14px;
+
+  background-color: #ffffff;
+}
+
+.admin-mode-button {
+  min-width: 0;
+  min-height: 36px;
+
+  padding: 0 10px;
+
+  border-radius: 10px;
+
+  background-color: transparent;
+  color: var(--color-muted);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.18s ease;
+}
+
+.admin-mode-button.is-active {
+  background-color: var(--color-background);
+  color: var(--color-primary);
+
+  box-shadow: 0 2px 5px rgba(8, 38, 50, 0.18);
+}
+
+.admin-mode-button:active {
+  transform: scale(0.97);
+}
+
+.admin-mode-button:focus-visible,
+.admin-new-button:focus-visible {
+  outline: 3px solid rgba(24, 116, 152, 0.24);
+  outline-offset: 2px;
+}
 
 .admin-form-section,
 .admin-events-section {
@@ -193,6 +372,13 @@ button {
 }
 
 .admin-events-section {
+  margin-top: 22px;
+}
+.admin-toolbar + .admin-form-section {
+  margin-top: 22px;
+}
+
+.admin-toolbar + .admin-form-section[hidden] + .admin-events-section {
   margin-top: 22px;
 }
 
@@ -313,6 +499,86 @@ button {
 
 .admin-character-counter {
   text-align: right;
+}
+/* ==============================
+   CHECKBOXES DAS LOJAS
+================================ */
+
+.admin-checkbox-section {
+  min-width: 0;
+
+  padding: 15px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 15px;
+
+  background-color: var(--color-surface);
+}
+
+.admin-checkbox-section legend {
+  padding: 0 6px;
+
+  color: var(--color-background);
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.admin-checkbox-grid {
+  margin-top: 4px;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.admin-checkbox-option {
+  min-width: 0;
+  min-height: 44px;
+
+  padding: 9px 11px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  border: 1px solid #d4dee1;
+  border-radius: 11px;
+
+  background-color: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.admin-checkbox-option:has(input:checked) {
+  border-color: var(--color-blue);
+
+  background-color: rgba(24, 116, 152, 0.08);
+}
+
+.admin-checkbox-option input {
+  width: 18px;
+  height: 18px;
+
+  flex: 0 0 18px;
+
+  accent-color: var(--color-blue);
+
+  cursor: pointer;
+}
+
+.admin-checkbox-option span {
+  min-width: 0;
+
+  color: var(--color-text);
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .admin-image-input {
@@ -534,12 +800,17 @@ button {
 }
 
 .admin-event-filters {
+  width: 100%;
+
   margin-top: 18px;
 
   display: flex;
+  align-items: center;
   gap: 8px;
 
   overflow-x: auto;
+  overflow-y: hidden;
+
   scrollbar-width: none;
 }
 
@@ -653,6 +924,15 @@ button {
 .admin-event-status.is-finished {
   background-color: var(--color-red);
 }
+.admin-event-status.is-partner {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+}
+
+.admin-event-status.is-common {
+  background-color: var(--color-blue);
+  color: #ffffff;
+}
 
 .admin-event-card-content {
   padding: 15px;
@@ -713,10 +993,67 @@ button {
 .admin-event-action.is-delete {
   color: #a43030;
 }
+@media (max-width: 380px) {
+  .admin-content {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
 
+  .admin-toolbar {
+    gap: 7px;
+  }
+
+  .admin-new-button {
+    min-width: 84px;
+    padding: 0 12px;
+
+    font-size: 13px;
+  }
+
+  .admin-mode-button {
+    padding: 0 7px;
+
+    font-size: 12px;
+  }
+
+  .admin-form-section,
+  .admin-events-section {
+    padding: 17px;
+  }
+
+  .admin-checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .admin-toolbar {
+    grid-template-columns:
+      88px
+      minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .admin-new-button {
+    width: 88px;
+
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .admin-mode-button {
+    padding-right: 7px;
+    padding-left: 7px;
+
+    font-size: 12px;
+  }
+}
 @media (min-width: 680px) {
   .admin-form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    .admin-toolbar {
+      grid-template-columns: 120px 300px;
+      justify-content: start;
+    }
   }
 
   .admin-content {
@@ -726,6 +1063,7 @@ button {
 
   .admin-events-list {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    align-items: start;
   }
 }

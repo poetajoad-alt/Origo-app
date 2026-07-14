@@ -4,7 +4,7 @@
    VERSÃO DO CACHE
 ================================ */
 
-const CACHE_NAME = "origo-pwa-v1";
+const CACHE_NAME = "origo-pwa-v2";
 
 const OFFLINE_PAGE = "./offline.html";
 

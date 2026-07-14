@@ -7,7 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <meta name="theme-color" content="#082632">
-  <meta name="theme-color" content="#082632">
 
   <link rel="manifest" href="./manifest.webmanifest">
 
@@ -23,7 +22,7 @@
 
   <meta name="apple-mobile-web-app-title" content="Origo">
 
-  <title>Origo | Administração de eventos</title>
+  <title>Origo | Painel Admin</title>
 
   <link rel="stylesheet" href="admin-eventos.css">
 
@@ -49,21 +48,52 @@
 
       <div class="admin-header-information">
         <span class="admin-header-label">
-          Painel administrativo
+          Origo
         </span>
 
         <h1>
-          Eventos
+          Painel Admin
         </h1>
       </div>
 
-      <button class="admin-header-action" id="new-event-button" type="button">
-        Novo
-      </button>
+      <span class="admin-header-placeholder" aria-hidden="true"></span>
     </header>
 
     <main class="admin-content">
-      <section class="admin-form-section" id="admin-form-section" aria-labelledby="admin-form-title">
+      <section class="admin-toolbar" aria-label="Controles do painel administrativo">
+        <div class="admin-new-control">
+
+          <button class="admin-new-button" id="new-event-button" type="button" aria-expanded="false" aria-controls="admin-new-menu">
+            <span aria-hidden="true">
+              +
+            </span>
+
+            Novo
+          </button>
+
+          <div class="admin-new-menu" id="admin-new-menu" hidden>
+            <button class="admin-new-menu-option" type="button" data-create-type="event">
+              Cadastrar evento
+            </button>
+
+            <button class="admin-new-menu-option" type="button" data-create-type="store">
+              Cadastrar loja
+            </button>
+          </div>
+
+        </div>
+
+        <div class="admin-mode-selector" role="tablist" aria-label="Tipo de cadastro">
+          <button class="admin-mode-button is-active" id="admin-events-mode-button" type="button" role="tab" aria-selected="true" data-admin-mode="events">
+            Eventos
+          </button>
+
+          <button class="admin-mode-button" id="admin-stores-mode-button" type="button" role="tab" aria-selected="false" data-admin-mode="stores">
+            Lojas
+          </button>
+        </div>
+      </section>
+      <section class="admin-form-section" id="admin-form-section" aria-labelledby="admin-form-title" hidden>
         <div class="admin-section-heading">
           <div>
             <span class="admin-section-eyebrow">
@@ -254,6 +284,273 @@
             Salvar evento
           </button>
         </form>
+        <form class="admin-event-form admin-store-form" id="admin-store-form" novalidate hidden>
+          <input id="store-id" type="hidden">
+
+          <div class="admin-form-group">
+            <label for="store-name">
+              Nome da loja
+            </label>
+
+            <input id="store-name" type="text" maxlength="120" placeholder="Ex.: Universo Ludo" required>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="store-description">
+              Descrição
+            </label>
+
+            <textarea id="store-description" rows="4" maxlength="1000" placeholder="Apresente a loja, sua estrutura e os serviços oferecidos." required></textarea>
+
+            <small class="admin-character-counter">
+              <span id="store-description-character-count">
+                0
+              </span>/1000
+            </small>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="store-image">
+              Logo ou imagem da loja
+            </label>
+
+            <div class="admin-image-input">
+              <span>
+                assets/
+              </span>
+
+              <input id="store-image" type="text" maxlength="220" placeholder="loja-1.jpg" autocomplete="off" required>
+            </div>
+
+            <small>
+              Use nomes como loja-1.jpg, loja-2.png ou loja-3.webp.
+            </small>
+          </div>
+
+          <div class="admin-image-preview" id="store-image-preview-wrapper">
+            <img id="store-image-preview" src="assets/logo-origo.png" alt="Prévia da imagem da loja">
+
+            <span id="store-image-preview-message" hidden>
+              Imagem não encontrada na pasta assets.
+            </span>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="store-address">
+              Endereço
+            </label>
+
+            <input id="store-address" type="text" maxlength="180" placeholder="Ex.: Rua das Cartas, 150" required>
+          </div>
+
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label for="store-neighborhood">
+                Bairro
+              </label>
+
+              <input id="store-neighborhood" type="text" maxlength="100" placeholder="Ex.: Centro">
+            </div>
+
+            <div class="admin-form-group">
+              <label for="store-city">
+                Cidade
+              </label>
+
+              <input id="store-city" type="text" maxlength="100" placeholder="Ex.: Guarulhos" required>
+            </div>
+          </div>
+
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label for="store-state">
+                Estado
+              </label>
+
+              <input id="store-state" type="text" maxlength="2" placeholder="SP" required>
+            </div>
+
+            <div class="admin-form-group">
+              <label for="store-zip-code">
+                CEP
+              </label>
+
+              <input id="store-zip-code" type="text" inputmode="numeric" maxlength="9" placeholder="00000-000">
+            </div>
+          </div>
+
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label for="store-latitude">
+                Latitude
+              </label>
+
+              <input id="store-latitude" type="number" min="-90" max="90" step="any" placeholder="-23.4543" required>
+            </div>
+
+            <div class="admin-form-group">
+              <label for="store-longitude">
+                Longitude
+              </label>
+
+              <input id="store-longitude" type="number" min="-180" max="180" step="any" placeholder="-46.5337" required>
+            </div>
+          </div>
+
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label for="store-phone">
+                Telefone
+              </label>
+
+              <input id="store-phone" type="tel" maxlength="20" placeholder="(11) 0000-0000">
+            </div>
+
+            <div class="admin-form-group">
+              <label for="store-whatsapp">
+                WhatsApp
+              </label>
+
+              <input id="store-whatsapp" type="tel" maxlength="20" placeholder="(11) 90000-0000">
+            </div>
+          </div>
+
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label for="store-instagram">
+                Instagram
+              </label>
+
+              <input id="store-instagram" type="text" maxlength="100" placeholder="@nomedaloja">
+            </div>
+
+            <div class="admin-form-group">
+              <label for="store-website">
+                Site
+              </label>
+
+              <input id="store-website" type="url" maxlength="220" placeholder="https://...">
+            </div>
+          </div>
+
+          <fieldset class="admin-checkbox-section">
+            <legend>
+              TCGs disponíveis
+            </legend>
+
+            <div class="admin-checkbox-grid">
+              <label class="admin-checkbox-option">
+                <input type="checkbox" name="store-tcg" value="Pokémon">
+
+                <span>
+                  Pokémon
+                </span>
+              </label>
+
+              <label class="admin-checkbox-option">
+                <input type="checkbox" name="store-tcg" value="Magic">
+
+                <span>
+                  Magic
+                </span>
+              </label>
+
+              <label class="admin-checkbox-option">
+                <input type="checkbox" name="store-tcg" value="Yu-Gi-Oh!">
+
+                <span>
+                  Yu-Gi-Oh!
+                </span>
+              </label>
+
+              <label class="admin-checkbox-option">
+                <input type="checkbox" name="store-tcg" value="Lorcana">
+
+                <span>
+                  Lorcana
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="admin-status-control">
+            <span>
+              <strong>
+                Possui mesas para jogar
+              </strong>
+
+              <small>
+                Indica que jogadores podem realizar partidas no local.
+              </small>
+            </span>
+
+            <span class="admin-switch">
+              <input id="store-has-tables" type="checkbox" checked>
+
+              <span class="admin-switch-control" aria-hidden="true"></span>
+            </span>
+          </label>
+
+          <label class="admin-status-control">
+            <span>
+              <strong>
+                Realiza eventos
+              </strong>
+
+              <small>
+                A loja organiza campeonatos, ligas ou encontros.
+              </small>
+            </span>
+
+            <span class="admin-switch">
+              <input id="store-holds-events" type="checkbox">
+
+              <span class="admin-switch-control" aria-hidden="true"></span>
+            </span>
+          </label>
+
+          <label class="admin-status-control">
+            <span>
+              <strong>
+                Loja parceira
+              </strong>
+
+              <small>
+                Lojas parceiras poderão receber destaque dentro do Origo.
+              </small>
+            </span>
+
+            <span class="admin-switch">
+              <input id="store-partner" type="checkbox">
+
+              <span class="admin-switch-control" aria-hidden="true"></span>
+            </span>
+          </label>
+
+          <label class="admin-status-control">
+            <span>
+              <strong>
+                Loja ativa
+              </strong>
+
+              <small>
+                Lojas inativas ficam salvas, mas não aparecem no app.
+              </small>
+            </span>
+
+            <span class="admin-switch">
+              <input id="store-active" type="checkbox" checked>
+
+              <span class="admin-switch-control" aria-hidden="true"></span>
+            </span>
+          </label>
+
+          <p class="admin-form-message" id="admin-store-form-message" role="status" aria-live="polite" hidden></p>
+
+          <button class="admin-save-button" id="save-store-button" type="submit">
+            Salvar loja
+          </button>
+        </form>
       </section>
 
       <section class="admin-events-section" aria-labelledby="admin-events-title">
@@ -273,7 +570,8 @@
           </button>
         </div>
 
-        <div class="admin-event-filters">
+        <!-- Filtros dos eventos -->
+        <div class="admin-event-filters" id="admin-event-filters">
           <button class="admin-filter-button is-active" type="button" data-event-filter="all">
             Todos
           </button>
@@ -291,12 +589,35 @@
           </button>
         </div>
 
+        <!-- Filtros das lojas -->
+        <div class="admin-event-filters" id="admin-store-filters" hidden>
+          <button class="admin-filter-button is-active" type="button" data-store-filter="all">
+            Todas
+          </button>
+
+          <button class="admin-filter-button" type="button" data-store-filter="active">
+            Ativas
+          </button>
+
+          <button class="admin-filter-button" type="button" data-store-filter="inactive">
+            Inativas
+          </button>
+
+          <button class="admin-filter-button" type="button" data-store-filter="partner">
+            Parceiras
+          </button>
+        </div>
+
+        <!-- Lista compartilhada -->
         <div class="admin-events-list" id="admin-events-list" aria-live="polite">
           <p class="admin-events-empty">
             Carregando eventos...
           </p>
         </div>
       </section>
+    </main>
+
+
     </main>
   </div>
 

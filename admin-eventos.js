@@ -1,7 +1,6 @@
 "use strict";
 
 import { db } from "./firebase-config.js";
-
 import { authReady } from "./auth-guard.js";
 
 import {
@@ -18,80 +17,98 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
-/* ==============================
-   ELEMENTOS
-================================ */
+const $ = (id) => document.getElementById(id);
 
-const adminAccessLoading = document.getElementById("admin-access-loading");
+const ui = {
+  accessLoading: $("admin-access-loading"),
+  page: $("admin-page"),
+  formSection: $("admin-form-section"),
+  formTitle: $("admin-form-title"),
+  cancelButton: $("cancel-edit-button"),
+  newButton: $("new-event-button"),
+  newMenu: $("admin-new-menu"),
+  listTitle: $("admin-events-title"),
+  refreshButton: $("refresh-events-button"),
+  list: $("admin-events-list"),
+  eventFilters: $("admin-event-filters"),
+  storeFilters: $("admin-store-filters"),
+  eventsModeButton: $("admin-events-mode-button"),
+  storesModeButton: $("admin-stores-mode-button"),
+};
 
-const adminPage = document.getElementById("admin-page");
+const eventFields = {
+  form: $("admin-event-form"),
+  id: $("event-id"),
+  title: $("event-title"),
+  category: $("event-category"),
+  format: $("event-format"),
+  image: $("event-image"),
+  imagePreview: $("event-image-preview"),
+  imageMessage: $("event-image-preview-message"),
+  start: $("event-start"),
+  end: $("event-end"),
+  location: $("event-location"),
+  city: $("event-city"),
+  latitude: $("event-latitude"),
+  longitude: $("event-longitude"),
+  description: $("event-description"),
+  characterCount: $("description-character-count"),
+  active: $("event-active"),
+  message: $("admin-form-message"),
+  saveButton: $("save-event-button"),
+};
 
-const form = document.getElementById("admin-event-form");
+const storeFields = {
+  form: $("admin-store-form"),
+  id: $("store-id"),
+  name: $("store-name"),
+  description: $("store-description"),
+  characterCount: $("store-description-character-count"),
+  image: $("store-image"),
+  imagePreview: $("store-image-preview"),
+  imageMessage: $("store-image-preview-message"),
+  address: $("store-address"),
+  neighborhood: $("store-neighborhood"),
+  city: $("store-city"),
+  state: $("store-state"),
+  zipCode: $("store-zip-code"),
+  latitude: $("store-latitude"),
+  longitude: $("store-longitude"),
+  phone: $("store-phone"),
+  whatsapp: $("store-whatsapp"),
+  instagram: $("store-instagram"),
+  website: $("store-website"),
+  hasTables: $("store-has-tables"),
+  holdsEvents: $("store-holds-events"),
+  partner: $("store-partner"),
+  active: $("store-active"),
+  message: $("admin-store-form-message"),
+  saveButton: $("save-store-button"),
+};
 
-const formTitle = document.getElementById("admin-form-title");
+const createButtons = document.querySelectorAll("[data-create-type]");
 
-const eventIdInput = document.getElementById("event-id");
+const modeButtons = document.querySelectorAll("[data-admin-mode]");
 
-const eventTitleInput = document.getElementById("event-title");
+const eventFilterButtons = document.querySelectorAll("[data-event-filter]");
 
-const eventCategoryInput = document.getElementById("event-category");
+const storeFilterButtons = document.querySelectorAll("[data-store-filter]");
 
-const eventFormatInput = document.getElementById("event-format");
-
-const eventImageInput = document.getElementById("event-image");
-
-const eventImagePreview = document.getElementById("event-image-preview");
-
-const eventImagePreviewMessage = document.getElementById(
-  "event-image-preview-message",
-);
-
-const eventStartInput = document.getElementById("event-start");
-
-const eventEndInput = document.getElementById("event-end");
-
-const eventLocationInput = document.getElementById("event-location");
-
-const eventCityInput = document.getElementById("event-city");
-
-const eventLatitudeInput = document.getElementById("event-latitude");
-
-const eventLongitudeInput = document.getElementById("event-longitude");
-
-const eventDescriptionInput = document.getElementById("event-description");
-
-const descriptionCharacterCount = document.getElementById(
-  "description-character-count",
-);
-
-const eventActiveInput = document.getElementById("event-active");
-
-const formMessage = document.getElementById("admin-form-message");
-
-const saveButton = document.getElementById("save-event-button");
-
-const cancelEditButton = document.getElementById("cancel-edit-button");
-
-const newEventButton = document.getElementById("new-event-button");
-
-const refreshEventsButton = document.getElementById("refresh-events-button");
-
-const eventsList = document.getElementById("admin-events-list");
-
-const filterButtons = document.querySelectorAll("[data-event-filter]");
-
-/* ==============================
-   ESTADO
-================================ */
+const storeTcgInputs = document.querySelectorAll('input[name="store-tcg"]');
 
 let currentAdminUser = null;
-let allEvents = [];
-let currentFilter = "all";
-let formIsSaving = false;
 
-/* ==============================
-   SEGURANÇA DO HTML
-================================ */
+let currentMode = "events";
+
+let currentEventFilter = "all";
+
+let currentStoreFilter = "all";
+
+let allEvents = [];
+
+let allStores = [];
+
+let isSaving = false;
 
 function escapeHTML(value) {
   return String(value ?? "")
@@ -102,151 +119,135 @@ function escapeHTML(value) {
     .replaceAll("'", "&#039;");
 }
 
-/* ==============================
-   MENSAGENS
-================================ */
-
-function showFormMessage(message, type = "error") {
-  if (!formMessage) {
+function showMessage(element, text, type = "error") {
+  if (!element) {
     return;
   }
 
-  formMessage.textContent = message;
+  element.textContent = text;
 
-  formMessage.hidden = false;
+  element.hidden = false;
 
-  formMessage.classList.remove("is-success", "is-error");
+  element.classList.remove("is-success", "is-error");
 
-  formMessage.classList.add(type === "success" ? "is-success" : "is-error");
+  element.classList.add(type === "success" ? "is-success" : "is-error");
 }
 
-function clearFormMessage() {
-  if (!formMessage) {
+function clearMessage(element) {
+  if (!element) {
     return;
   }
 
-  formMessage.textContent = "";
-  formMessage.hidden = true;
+  element.textContent = "";
 
-  formMessage.classList.remove("is-success", "is-error");
+  element.hidden = true;
+
+  element.classList.remove("is-success", "is-error");
 }
 
-/* ==============================
-   CAMINHO DA IMAGEM
-================================ */
-
-function normalizeImagePath(value) {
-  let imageName = String(value || "")
+function normalizeImagePath(value, prefix) {
+  let name = String(value || "")
     .trim()
     .replaceAll("\\", "/");
 
-  imageName = imageName.replace(/^\.?\/*assets\//i, "");
+  name = name.replace(/^\.?\/*assets\//i, "");
 
-  if (
-    imageName.includes("../") ||
-    imageName.includes("://") ||
-    imageName.includes("/")
-  ) {
+  if (name.includes("../") || name.includes("://") || name.includes("/")) {
     return null;
   }
 
-  const validImagePattern = /^evento-\d+\.(jpg|jpeg|png|webp|avif)$/i;
+  const pattern = new RegExp(
+    `^${prefix}-\\d+\\.(jpg|jpeg|png|webp|avif)$`,
+    "i",
+  );
 
-  if (!validImagePattern.test(imageName)) {
-    return null;
-  }
-
-  return `assets/${imageName}`;
+  return pattern.test(name) ? `assets/${name}` : null;
 }
 
-function getImageInputValue(path) {
+function imageInputValue(path) {
   return String(path || "").replace(/^assets\//i, "");
 }
 
-function updateImagePreview() {
-  const normalizedPath = normalizeImagePath(eventImageInput?.value);
+function updatePreview(fields, prefix, example) {
+  const path = normalizeImagePath(fields.image?.value, prefix);
 
-  if (!eventImagePreview || !eventImagePreviewMessage) {
+  if (!fields.imagePreview || !fields.imageMessage) {
     return;
   }
 
-  if (!normalizedPath) {
-    eventImagePreview.hidden = true;
-    eventImagePreviewMessage.hidden = false;
+  if (!path) {
+    fields.imagePreview.hidden = true;
 
-    eventImagePreviewMessage.textContent =
-      "Use um nome como evento-1.jpg ou evento-1000.webp.";
+    fields.imageMessage.hidden = false;
+
+    fields.imageMessage.textContent = `Use um nome como ${example}.`;
 
     return;
   }
 
-  eventImagePreviewMessage.hidden = true;
+  fields.imageMessage.hidden = true;
 
-  eventImagePreview.hidden = false;
-  eventImagePreview.src = normalizedPath;
+  fields.imagePreview.hidden = false;
+
+  fields.imagePreview.src = path;
 }
 
-eventImagePreview?.addEventListener("load", () => {
-  eventImagePreview.hidden = false;
+function installPreviewEvents(fields) {
+  fields.imagePreview?.addEventListener("load", () => {
+    fields.imagePreview.hidden = false;
 
-  if (eventImagePreviewMessage) {
-    eventImagePreviewMessage.hidden = true;
-  }
-});
+    fields.imageMessage.hidden = true;
+  });
 
-eventImagePreview?.addEventListener("error", () => {
-  eventImagePreview.hidden = true;
+  fields.imagePreview?.addEventListener("error", () => {
+    fields.imagePreview.hidden = true;
 
-  if (eventImagePreviewMessage) {
-    eventImagePreviewMessage.hidden = false;
+    fields.imageMessage.hidden = false;
 
-    eventImagePreviewMessage.textContent =
-      "Imagem não encontrada na pasta assets.";
-  }
-});
+    fields.imageMessage.textContent = "Imagem não encontrada na pasta assets.";
+  });
+}
 
-/* ==============================
-   DATA E HORA
-================================ */
+function parseDateTime(value) {
+  const date = new Date(String(value || "").trim());
 
-function parseLocalDateTime(value) {
-  const normalizedValue = String(value || "").trim();
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
-  if (!normalizedValue) {
+function parseCoordinate(input) {
+  const raw = String(input?.value || "").trim();
+
+  if (!raw) {
     return null;
   }
 
-  const date = new Date(normalizedValue);
+  const value = Number(raw);
 
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return date;
+  return Number.isFinite(value) ? value : null;
 }
 
-function timestampToInputValue(timestamp) {
-  if (!timestamp || typeof timestamp.toDate !== "function") {
+function timestampToInput(timestamp) {
+  if (!timestamp?.toDate) {
     return "";
   }
 
   const date = timestamp.toDate();
 
-  const year = date.getFullYear();
+  const pad = (value) => {
+    return String(value).padStart(2, "0");
+  };
 
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-
-  const day = String(date.getDate()).padStart(2, "0");
-
-  const hours = String(date.getHours()).padStart(2, "0");
-
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day}` + `T${hours}:${minutes}`;
+  return (
+    `${date.getFullYear()}-` +
+    `${pad(date.getMonth() + 1)}-` +
+    `${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:` +
+    `${pad(date.getMinutes())}`
+  );
 }
 
-function formatDateTime(timestamp) {
-  if (!timestamp || typeof timestamp.toDate !== "function") {
+function formatTimestamp(timestamp) {
+  if (!timestamp?.toDate) {
     return "Data não informada";
   }
 
@@ -256,52 +257,15 @@ function formatDateTime(timestamp) {
   }).format(timestamp.toDate());
 }
 
-/* ==============================
-   STATUS DO EVENTO
-================================ */
-
-function getEventStatus(event) {
-  const now = new Date();
-
-  const endDate = event.dataHoraFim?.toDate?.();
-
-  if (endDate && endDate < now) {
-    return "finished";
-  }
-
-  if (event.ativo !== true) {
-    return "inactive";
-  }
-
-  return "active";
-}
-
-function getEventStatusLabel(status) {
-  const labels = {
-    active: "Ativo",
-    inactive: "Inativo",
-    finished: "Finalizado",
-  };
-
-  return labels[status] || "Evento";
-}
-
-/* ==============================
-   VERIFICAR ADMINISTRADOR
-================================ */
-
 async function verifyAdminAccess() {
   try {
     currentAdminUser = await authReady;
 
     const adminReference = doc(db, "admins", currentAdminUser.uid);
 
-    const adminSnapshot = await getDoc(adminReference);
+    const snapshot = await getDoc(adminReference);
 
-    const adminIsActive =
-      adminSnapshot.exists() && adminSnapshot.data().ativo === true;
-
-    if (!adminIsActive) {
+    if (!snapshot.exists() || snapshot.data().ativo !== true) {
       window.alert("Sua conta não possui acesso administrativo.");
 
       window.location.replace("principal.html");
@@ -309,8 +273,9 @@ async function verifyAdminAccess() {
       return false;
     }
 
-    adminAccessLoading.hidden = true;
-    adminPage.hidden = false;
+    ui.accessLoading.hidden = true;
+
+    ui.page.hidden = false;
 
     return true;
   } catch (error) {
@@ -324,255 +289,584 @@ async function verifyAdminAccess() {
   }
 }
 
-/* ==============================
-   ESTADO DO FORMULÁRIO
-================================ */
+function setNewMenu(open) {
+  ui.newButton?.setAttribute("aria-expanded", String(open));
 
-function setFormSaving(isSaving) {
-  formIsSaving = isSaving;
-
-  if (saveButton) {
-    saveButton.disabled = isSaving;
-
-    saveButton.textContent = isSaving
-      ? "Salvando..."
-      : eventIdInput.value
-        ? "Atualizar evento"
-        : "Salvar evento";
+  if (ui.newMenu) {
+    ui.newMenu.hidden = !open;
   }
 }
 
-function resetForm() {
-  form?.reset();
+function closeForm() {
+  if (ui.formSection) {
+    ui.formSection.hidden = true;
+  }
 
-  eventIdInput.value = "";
+  if (ui.cancelButton) {
+    ui.cancelButton.hidden = true;
+  }
 
-  eventActiveInput.checked = true;
+  clearMessage(eventFields.message);
 
-  formTitle.textContent = "Novo evento";
-
-  saveButton.textContent = "Salvar evento";
-
-  cancelEditButton.hidden = true;
-
-  eventImageInput.value = "evento-1.jpg";
-
-  eventImagePreview.src = "assets/evento-1.jpg";
-
-  eventImagePreview.hidden = false;
-  eventImagePreviewMessage.hidden = true;
-
-  descriptionCharacterCount.textContent = "0";
-
-  clearFormMessage();
+  clearMessage(storeFields.message);
 }
 
-function focusForm() {
-  document.getElementById("admin-form-section")?.scrollIntoView({
+function focusForm(input) {
+  ui.formSection.hidden = false;
+
+  ui.formSection.scrollIntoView({
     behavior: "smooth",
     block: "start",
   });
 
   window.setTimeout(() => {
-    eventTitleInput?.focus();
-  }, 400);
+    input?.focus();
+  }, 350);
 }
 
-/* ==============================
-   VALIDAR FORMULÁRIO
-================================ */
+function updateModeUI() {
+  const eventsMode = currentMode === "events";
 
-function getValidatedFormData() {
-  const title = eventTitleInput.value.trim();
+  ui.eventsModeButton?.classList.toggle("is-active", eventsMode);
 
-  const category = eventCategoryInput.value.trim();
+  ui.storesModeButton?.classList.toggle("is-active", !eventsMode);
 
-  const format = eventFormatInput.value.trim();
+  ui.eventsModeButton?.setAttribute("aria-selected", String(eventsMode));
 
-  const image = normalizeImagePath(eventImageInput.value);
+  ui.storesModeButton?.setAttribute("aria-selected", String(!eventsMode));
 
-  const startDate = parseLocalDateTime(eventStartInput.value);
-
-  const endDate = parseLocalDateTime(eventEndInput.value);
-
-  const location = eventLocationInput.value.trim();
-
-  const city = eventCityInput.value.trim();
-
-  const latitude = Number(eventLatitudeInput.value);
-
-  const longitude = Number(eventLongitudeInput.value);
-
-  const description = eventDescriptionInput.value.trim();
-
-  if (title.length < 2) {
-    showFormMessage("Digite o título do evento.");
-
-    eventTitleInput.focus();
-    return null;
+  if (ui.eventFilters) {
+    ui.eventFilters.hidden = !eventsMode;
   }
 
-  if (!category) {
-    showFormMessage("Selecione a categoria.");
-
-    eventCategoryInput.focus();
-    return null;
+  if (ui.storeFilters) {
+    ui.storeFilters.hidden = eventsMode;
   }
 
-  if (format.length < 2) {
-    showFormMessage("Informe o formato do evento.");
+  if (ui.listTitle) {
+    ui.listTitle.textContent = eventsMode
+      ? "Eventos cadastrados"
+      : "Lojas cadastradas";
+  }
+}
 
-    eventFormatInput.focus();
+async function setMode(mode, reload = true) {
+  currentMode = mode === "stores" ? "stores" : "events";
+
+  setNewMenu(false);
+
+  closeForm();
+
+  updateModeUI();
+
+  if (!reload) {
+    renderCurrentList();
+
+    return;
+  }
+
+  if (currentMode === "stores") {
+    await loadStores();
+
+    return;
+  }
+
+  await loadEvents();
+}
+
+function resetEventForm() {
+  eventFields.form?.reset();
+
+  eventFields.id.value = "";
+
+  eventFields.active.checked = true;
+
+  eventFields.image.value = "evento-1.jpg";
+
+  eventFields.imagePreview.src = "assets/evento-1.jpg";
+
+  eventFields.imagePreview.hidden = false;
+
+  eventFields.imageMessage.hidden = true;
+
+  eventFields.characterCount.textContent = "0";
+
+  eventFields.saveButton.textContent = "Salvar evento";
+
+  clearMessage(eventFields.message);
+}
+
+function resetStoreForm() {
+  storeFields.form?.reset();
+
+  storeFields.id.value = "";
+
+  storeFields.hasTables.checked = true;
+
+  storeFields.holdsEvents.checked = false;
+
+  storeFields.partner.checked = false;
+
+  storeFields.active.checked = true;
+
+  storeFields.image.value = "";
+
+  storeFields.imagePreview.src = "assets/logo-origo-index.png";
+
+  storeFields.imagePreview.hidden = false;
+
+  storeFields.imageMessage.hidden = true;
+
+  storeFields.characterCount.textContent = "0";
+
+  storeFields.saveButton.textContent = "Salvar loja";
+
+  clearMessage(storeFields.message);
+}
+
+function openEventForm() {
+  currentMode = "events";
+
+  updateModeUI();
+
+  loadEvents();
+
+  resetEventForm();
+
+  storeFields.form.hidden = true;
+
+  eventFields.form.hidden = false;
+
+  ui.formTitle.textContent = "Novo evento";
+
+  ui.cancelButton.textContent = "Fechar formulário";
+
+  ui.cancelButton.hidden = false;
+
+  focusForm(eventFields.title);
+}
+
+function openStoreForm() {
+  currentMode = "stores";
+
+  updateModeUI();
+
+  loadStores();
+
+  resetStoreForm();
+
+  eventFields.form.hidden = true;
+
+  storeFields.form.hidden = false;
+
+  ui.formTitle.textContent = "Nova loja";
+
+  ui.cancelButton.textContent = "Fechar formulário";
+
+  ui.cancelButton.hidden = false;
+
+  focusForm(storeFields.name);
+}
+
+function eventFormData() {
+  const start = parseDateTime(eventFields.start.value);
+
+  const end = parseDateTime(eventFields.end.value);
+
+  const latitude = parseCoordinate(eventFields.latitude);
+
+  const longitude = parseCoordinate(eventFields.longitude);
+
+  const image = normalizeImagePath(eventFields.image.value, "evento");
+
+  const invalid = (message, input) => {
+    showMessage(eventFields.message, message);
+
+    input?.focus();
+
     return null;
+  };
+
+  if (eventFields.title.value.trim().length < 2) {
+    return invalid("Digite o título do evento.", eventFields.title);
+  }
+
+  if (!eventFields.category.value) {
+    return invalid("Selecione a categoria.", eventFields.category);
+  }
+
+  if (eventFields.format.value.trim().length < 2) {
+    return invalid("Informe o formato do evento.", eventFields.format);
   }
 
   if (!image) {
-    showFormMessage("Use uma imagem válida, como evento-1.jpg.");
-
-    eventImageInput.focus();
-    return null;
+    return invalid(
+      "Use uma imagem válida, como evento-1.jpg.",
+      eventFields.image,
+    );
   }
 
-  if (!startDate || !endDate) {
-    showFormMessage("Informe as datas de início e término.");
-
-    eventStartInput.focus();
-    return null;
+  if (!start || !end) {
+    return invalid("Informe as datas de início e término.", eventFields.start);
   }
 
-  if (endDate <= startDate) {
-    showFormMessage("O término precisa ser posterior ao início.");
-
-    eventEndInput.focus();
-    return null;
+  if (end <= start) {
+    return invalid(
+      "O término precisa ser posterior ao início.",
+      eventFields.end,
+    );
   }
 
-  if (location.length < 2) {
-    showFormMessage("Informe o local do evento.");
-
-    eventLocationInput.focus();
-    return null;
+  if (eventFields.location.value.trim().length < 2) {
+    return invalid("Informe o local do evento.", eventFields.location);
   }
 
-  if (city.length < 2) {
-    showFormMessage("Informe a cidade.");
-
-    eventCityInput.focus();
-    return null;
+  if (eventFields.city.value.trim().length < 2) {
+    return invalid("Informe a cidade.", eventFields.city);
   }
 
-  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
-    showFormMessage("Informe uma latitude válida.");
-
-    eventLatitudeInput.focus();
-    return null;
+  if (latitude === null || latitude < -90 || latitude > 90) {
+    return invalid("Informe uma latitude válida.", eventFields.latitude);
   }
 
-  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
-    showFormMessage("Informe uma longitude válida.");
-
-    eventLongitudeInput.focus();
-    return null;
+  if (longitude === null || longitude < -180 || longitude > 180) {
+    return invalid("Informe uma longitude válida.", eventFields.longitude);
   }
 
-  if (description.length < 2) {
-    showFormMessage("Digite uma descrição para o evento.");
-
-    eventDescriptionInput.focus();
-    return null;
+  if (eventFields.description.value.trim().length < 2) {
+    return invalid(
+      "Digite uma descrição para o evento.",
+      eventFields.description,
+    );
   }
 
   return {
-    titulo: title,
-    categoria: category,
+    titulo: eventFields.title.value.trim(),
+
+    categoria: eventFields.category.value.trim(),
+
+    formato: eventFields.format.value.trim(),
+
     imagem: image,
-    local: location,
-    cidade: city,
-    descricao: description,
-    formato: format,
+
+    dataHoraInicio: Timestamp.fromDate(start),
+
+    dataHoraFim: Timestamp.fromDate(end),
+
+    local: eventFields.location.value.trim(),
+
+    cidade: eventFields.city.value.trim(),
+
     latitude,
+
     longitude,
-    dataHoraInicio: Timestamp.fromDate(startDate),
-    dataHoraFim: Timestamp.fromDate(endDate),
-    ativo: eventActiveInput.checked,
+
+    descricao: eventFields.description.value.trim(),
+
+    ativo: eventFields.active.checked,
   };
 }
 
-/* ==============================
-   SALVAR EVENTO
-================================ */
+function storeFormData() {
+  const latitude = parseCoordinate(storeFields.latitude);
 
-form?.addEventListener("submit", async (event) => {
+  const longitude = parseCoordinate(storeFields.longitude);
+
+  const image = normalizeImagePath(storeFields.image.value, "loja");
+
+  const state = storeFields.state.value.trim().toUpperCase();
+
+  const tcgs = Array.from(storeTcgInputs)
+    .filter((input) => {
+      return input.checked;
+    })
+    .map((input) => {
+      return input.value;
+    });
+
+  const invalid = (message, input) => {
+    showMessage(storeFields.message, message);
+
+    input?.focus();
+
+    return null;
+  };
+
+  if (storeFields.name.value.trim().length < 2) {
+    return invalid("Digite o nome da loja.", storeFields.name);
+  }
+
+  if (storeFields.description.value.trim().length < 2) {
+    return invalid(
+      "Digite uma descrição para a loja.",
+      storeFields.description,
+    );
+  }
+
+  if (!image) {
+    return invalid(
+      "Use uma imagem válida, como loja-1.jpg.",
+      storeFields.image,
+    );
+  }
+
+  if (storeFields.address.value.trim().length < 3) {
+    return invalid("Informe o endereço da loja.", storeFields.address);
+  }
+
+  if (storeFields.city.value.trim().length < 2) {
+    return invalid("Informe a cidade da loja.", storeFields.city);
+  }
+
+  if (!/^[A-Z]{2}$/.test(state)) {
+    return invalid(
+      "Informe o estado com duas letras, como SP.",
+      storeFields.state,
+    );
+  }
+
+  if (latitude === null || latitude < -90 || latitude > 90) {
+    return invalid("Informe uma latitude válida.", storeFields.latitude);
+  }
+
+  if (longitude === null || longitude < -180 || longitude > 180) {
+    return invalid("Informe uma longitude válida.", storeFields.longitude);
+  }
+
+  if (!tcgs.length) {
+    return invalid(
+      "Selecione pelo menos um TCG disponível.",
+      storeTcgInputs[0],
+    );
+  }
+
+  const website = storeFields.website.value.trim();
+
+  if (website) {
+    try {
+      const url = new URL(website);
+
+      if (!["http:", "https:"].includes(url.protocol)) {
+        throw new Error("Protocolo inválido");
+      }
+    } catch {
+      return invalid(
+        "Informe um site válido começando com http:// ou https://.",
+        storeFields.website,
+      );
+    }
+  }
+
+  return {
+    nome: storeFields.name.value.trim(),
+
+    descricao: storeFields.description.value.trim(),
+
+    imagem: image,
+
+    endereco: storeFields.address.value.trim(),
+
+    bairro: storeFields.neighborhood.value.trim(),
+
+    cidade: storeFields.city.value.trim(),
+
+    estado: state,
+
+    cep: storeFields.zipCode.value.trim(),
+
+    latitude,
+
+    longitude,
+
+    telefone: storeFields.phone.value.trim(),
+
+    whatsapp: storeFields.whatsapp.value.trim(),
+
+    instagram: storeFields.instagram.value.trim(),
+
+    site: website,
+
+    tcgs,
+
+    possuiMesas: storeFields.hasTables.checked,
+
+    realizaEventos: storeFields.holdsEvents.checked,
+
+    parceira: storeFields.partner.checked,
+
+    ativo: storeFields.active.checked,
+  };
+}
+
+function setSaving(fields, saving, entity) {
+  isSaving = saving;
+
+  fields.saveButton.disabled = saving;
+
+  fields.saveButton.textContent = saving
+    ? "Salvando..."
+    : fields.id.value
+      ? `Atualizar ${entity}`
+      : `Salvar ${entity}`;
+}
+
+eventFields.form?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  if (formIsSaving) {
+  if (isSaving) {
     return;
   }
 
-  clearFormMessage();
+  clearMessage(eventFields.message);
 
-  const eventData = getValidatedFormData();
+  const data = eventFormData();
 
-  if (!eventData) {
+  if (!data) {
     return;
   }
 
-  setFormSaving(true);
+  setSaving(eventFields, true, "evento");
 
   try {
-    const eventId = eventIdInput.value.trim();
+    const id = eventFields.id.value.trim();
 
-    if (eventId) {
-      await updateDoc(doc(db, "eventos", eventId), {
-        ...eventData,
+    if (id) {
+      await updateDoc(doc(db, "eventos", id), {
+        ...data,
         atualizadoEm: serverTimestamp(),
       });
 
-      showFormMessage("Evento atualizado com sucesso!", "success");
+      showMessage(
+        eventFields.message,
+        "Evento atualizado com sucesso!",
+        "success",
+      );
     } else {
       await addDoc(collection(db, "eventos"), {
-        ...eventData,
+        ...data,
         criadoEm: serverTimestamp(),
+
         atualizadoEm: serverTimestamp(),
       });
 
-      showFormMessage("Evento criado com sucesso!", "success");
+      showMessage(eventFields.message, "Evento criado com sucesso!", "success");
     }
 
     await loadEvents();
 
     window.setTimeout(() => {
-      resetForm();
-    }, 1100);
+      resetEventForm();
+
+      closeForm();
+    }, 900);
   } catch (error) {
     console.error("[Admin] Erro ao salvar evento:", error);
 
-    showFormMessage(
+    showMessage(
+      eventFields.message,
+
       error?.code === "permission-denied"
-        ? "O Firebase bloqueou a operação. Confira a conta administrativa e as regras."
+        ? "O Firebase bloqueou a operação. Confira as regras da coleção eventos."
         : "Não foi possível salvar o evento.",
     );
   } finally {
-    setFormSaving(false);
+    setSaving(eventFields, false, "evento");
   }
 });
 
-/* ==============================
-   CRIAR CARD DO PAINEL
-================================ */
+storeFields.form?.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-function createAdminEventCard(event) {
-  const status = getEventStatus(event);
+  if (isSaving) {
+    return;
+  }
+
+  clearMessage(storeFields.message);
+
+  const data = storeFormData();
+
+  if (!data) {
+    return;
+  }
+
+  setSaving(storeFields, true, "loja");
+
+  try {
+    const id = storeFields.id.value.trim();
+
+    if (id) {
+      await updateDoc(doc(db, "lojas", id), {
+        ...data,
+        atualizadoEm: serverTimestamp(),
+      });
+
+      showMessage(
+        storeFields.message,
+        "Loja atualizada com sucesso!",
+        "success",
+      );
+    } else {
+      await addDoc(collection(db, "lojas"), {
+        ...data,
+
+        criadoEm: serverTimestamp(),
+
+        atualizadoEm: serverTimestamp(),
+      });
+
+      showMessage(storeFields.message, "Loja criada com sucesso!", "success");
+    }
+
+    await loadStores();
+
+    window.setTimeout(() => {
+      resetStoreForm();
+
+      closeForm();
+    }, 900);
+  } catch (error) {
+    console.error("[Admin] Erro ao salvar loja:", error);
+
+    showMessage(
+      storeFields.message,
+
+      error?.code === "permission-denied"
+        ? "O Firebase bloqueou a operação. Confira as regras da coleção lojas."
+        : "Não foi possível salvar a loja.",
+    );
+  } finally {
+    setSaving(storeFields, false, "loja");
+  }
+});
+
+function eventStatus(item) {
+  const end = item.dataHoraFim?.toDate?.();
+
+  if (end && end < new Date()) {
+    return "finished";
+  }
+
+  return item.ativo === true ? "active" : "inactive";
+}
+
+function eventCard(item) {
+  const status = eventStatus(item);
+
+  const labels = {
+    active: "Ativo",
+    inactive: "Inativo",
+    finished: "Finalizado",
+  };
 
   return `
     <article
       class="admin-event-card"
-      data-event-id="${escapeHTML(event.id)}"
+      data-event-id="${escapeHTML(item.id)}"
     >
       <div class="admin-event-card-image">
         <img
-          src="${escapeHTML(event.imagem)}"
-          alt="${escapeHTML(event.titulo)}"
+          src="${escapeHTML(item.imagem)}"
+          alt="${escapeHTML(item.titulo)}"
         >
 
         <span
@@ -582,33 +876,33 @@ function createAdminEventCard(event) {
             ${status === "finished" ? "is-finished" : ""}
           "
         >
-          ${getEventStatusLabel(status)}
+          ${labels[status]}
         </span>
       </div>
 
       <div class="admin-event-card-content">
         <span class="admin-event-category">
-          ${escapeHTML(event.categoria)}
+          ${escapeHTML(item.categoria)}
         </span>
 
         <h3>
-          ${escapeHTML(event.titulo)}
+          ${escapeHTML(item.titulo)}
         </h3>
 
         <div class="admin-event-meta">
           <p>
             <strong>Início:</strong>
-            ${escapeHTML(formatDateTime(event.dataHoraInicio))}
+            ${escapeHTML(formatTimestamp(item.dataHoraInicio))}
           </p>
 
           <p>
             <strong>Término:</strong>
-            ${escapeHTML(formatDateTime(event.dataHoraFim))}
+            ${escapeHTML(formatTimestamp(item.dataHoraFim))}
           </p>
 
           <p>
             <strong>Local:</strong>
-            ${escapeHTML(event.local)}
+            ${escapeHTML(item.local)}
           </p>
         </div>
 
@@ -626,7 +920,7 @@ function createAdminEventCard(event) {
             type="button"
             data-event-action="status"
           >
-            ${event.ativo ? "Desativar" : "Ativar"}
+            ${item.ativo ? "Desativar" : "Ativar"}
           </button>
 
           <button
@@ -642,46 +936,157 @@ function createAdminEventCard(event) {
   `;
 }
 
-/* ==============================
-   FILTRAR EVENTOS
-================================ */
+function storeCard(item) {
+  const inactive = item.ativo !== true;
+
+  const partner = item.parceira === true;
+
+  const statusLabel = inactive ? "Inativa" : partner ? "Parceira" : "Ativa";
+
+  const statusClass = inactive
+    ? "is-inactive"
+    : partner
+      ? "is-partner"
+      : "is-common";
+
+  const location = [item.cidade, item.estado].filter(Boolean).join(" - ");
+
+  const tcgs = Array.isArray(item.tcgs)
+    ? item.tcgs.join(", ")
+    : "Não informado";
+
+  return `
+    <article
+      class="admin-event-card"
+      data-store-id="${escapeHTML(item.id)}"
+    >
+      <div class="admin-event-card-image">
+        <img
+          src="${escapeHTML(item.imagem)}"
+          alt="${escapeHTML(item.nome)}"
+        >
+
+        <span
+          class="admin-event-status ${statusClass}"
+        >
+          ${statusLabel}
+        </span>
+      </div>
+
+      <div class="admin-event-card-content">
+        <span class="admin-event-category">
+          ${partner ? "Parceira Origo" : "Loja cadastrada"}
+        </span>
+
+        <h3>
+          ${escapeHTML(item.nome)}
+        </h3>
+
+        <div class="admin-event-meta">
+          <p>
+            <strong>Local:</strong>
+            ${escapeHTML(location || "Não informado")}
+          </p>
+
+          <p>
+            <strong>Endereço:</strong>
+            ${escapeHTML(item.endereco || "Não informado")}
+          </p>
+
+          <p>
+            <strong>TCGs:</strong>
+            ${escapeHTML(tcgs)}
+          </p>
+        </div>
+
+        <div class="admin-event-card-actions">
+          <button
+            class="admin-event-action"
+            type="button"
+            data-store-action="edit"
+          >
+            Editar
+          </button>
+
+          <button
+            class="admin-event-action is-status"
+            type="button"
+            data-store-action="status"
+          >
+            ${item.ativo ? "Desativar" : "Ativar"}
+          </button>
+
+          <button
+            class="admin-event-action is-delete"
+            type="button"
+            data-store-action="delete"
+          >
+            Excluir
+          </button>
+        </div>
+      </div>
+    </article>
+  `;
+}
 
 function renderEvents() {
-  if (!eventsList) {
-    return;
-  }
+  const items = allEvents.filter((item) => {
+    return (
+      currentEventFilter === "all" || eventStatus(item) === currentEventFilter
+    );
+  });
 
-  const filteredEvents = allEvents.filter((event) => {
-    if (currentFilter === "all") {
+  ui.list.innerHTML = items.length
+    ? items.map(eventCard).join("")
+    : `
+          <p class="admin-events-empty">
+            Nenhum evento encontrado neste filtro.
+          </p>
+        `;
+}
+
+function renderStores() {
+  const items = allStores.filter((item) => {
+    if (currentStoreFilter === "all") {
       return true;
     }
 
-    return getEventStatus(event) === currentFilter;
+    if (currentStoreFilter === "active") {
+      return item.ativo === true;
+    }
+
+    if (currentStoreFilter === "inactive") {
+      return item.ativo !== true;
+    }
+
+    if (currentStoreFilter === "partner") {
+      return item.parceira === true;
+    }
+
+    return true;
   });
 
-  if (!filteredEvents.length) {
-    eventsList.innerHTML = `
-      <p class="admin-events-empty">
-        Nenhum evento encontrado neste filtro.
-      </p>
-    `;
-
-    return;
-  }
-
-  eventsList.innerHTML = filteredEvents.map(createAdminEventCard).join("");
+  ui.list.innerHTML = items.length
+    ? items.map(storeCard).join("")
+    : `
+          <p class="admin-events-empty">
+            Nenhuma loja encontrada neste filtro.
+          </p>
+        `;
 }
 
-/* ==============================
-   CARREGAR EVENTOS
-================================ */
+function renderCurrentList() {
+  if (currentMode === "stores") {
+    renderStores();
 
-async function loadEvents() {
-  if (!eventsList) {
     return;
   }
 
-  eventsList.innerHTML = `
+  renderEvents();
+}
+
+async function loadEvents() {
+  ui.list.innerHTML = `
     <p class="admin-events-empty">
       Carregando eventos...
     </p>
@@ -690,23 +1095,26 @@ async function loadEvents() {
   try {
     const eventsQuery = query(
       collection(db, "eventos"),
+
       orderBy("dataHoraInicio", "desc"),
     );
 
     const snapshot = await getDocs(eventsQuery);
 
-    allEvents = snapshot.docs.map((documentSnapshot) => {
+    allEvents = snapshot.docs.map((item) => {
       return {
-        id: documentSnapshot.id,
-        ...documentSnapshot.data(),
+        id: item.id,
+        ...item.data(),
       };
     });
 
-    renderEvents();
+    if (currentMode === "events") {
+      renderEvents();
+    }
   } catch (error) {
     console.error("[Admin] Erro ao carregar eventos:", error);
 
-    eventsList.innerHTML = `
+    ui.list.innerHTML = `
       <p class="admin-events-empty">
         Não foi possível carregar os eventos.
       </p>
@@ -714,96 +1122,213 @@ async function loadEvents() {
   }
 }
 
-/* ==============================
-   EDITAR EVENTO
-================================ */
-
-function editEvent(eventId) {
-  const event = allEvents.find((item) => item.id === eventId);
-
-  if (!event) {
-    return;
-  }
-
-  eventIdInput.value = event.id;
-
-  eventTitleInput.value = event.titulo || "";
-
-  eventCategoryInput.value = event.categoria || "";
-
-  eventFormatInput.value = event.formato || "";
-
-  eventImageInput.value = getImageInputValue(event.imagem);
-
-  eventStartInput.value = timestampToInputValue(event.dataHoraInicio);
-
-  eventEndInput.value = timestampToInputValue(event.dataHoraFim);
-
-  eventLocationInput.value = event.local || "";
-
-  eventCityInput.value = event.cidade || "";
-
-  eventLatitudeInput.value = event.latitude ?? "";
-
-  eventLongitudeInput.value = event.longitude ?? "";
-
-  eventDescriptionInput.value = event.descricao || "";
-
-  eventActiveInput.checked = event.ativo === true;
-
-  descriptionCharacterCount.textContent = String(
-    eventDescriptionInput.value.length,
-  );
-
-  formTitle.textContent = "Editar evento";
-
-  saveButton.textContent = "Atualizar evento";
-
-  cancelEditButton.hidden = false;
-
-  updateImagePreview();
-  clearFormMessage();
-  focusForm();
-}
-
-/* ==============================
-   ATIVAR OU DESATIVAR
-================================ */
-
-async function toggleEventStatus(eventId) {
-  const event = allEvents.find((item) => item.id === eventId);
-
-  if (!event) {
-    return;
-  }
+async function loadStores() {
+  ui.list.innerHTML = `
+    <p class="admin-events-empty">
+      Carregando lojas...
+    </p>
+  `;
 
   try {
-    await updateDoc(doc(db, "eventos", eventId), {
-      ativo: event.ativo !== true,
+    const snapshot = await getDocs(collection(db, "lojas"));
+
+    allStores = snapshot.docs
+      .map((item) => {
+        return {
+          id: item.id,
+          ...item.data(),
+        };
+      })
+      .sort((first, second) => {
+        return String(first.nome || "").localeCompare(
+          String(second.nome || ""),
+
+          "pt-BR",
+        );
+      });
+
+    if (currentMode === "stores") {
+      renderStores();
+    }
+  } catch (error) {
+    console.error("[Admin] Erro ao carregar lojas:", error);
+
+    ui.list.innerHTML = `
+      <p class="admin-events-empty">
+        Não foi possível carregar as lojas.
+      </p>
+    `;
+  }
+}
+
+function editEvent(id) {
+  const item = allEvents.find((event) => {
+    return event.id === id;
+  });
+
+  if (!item) {
+    return;
+  }
+
+  currentMode = "events";
+
+  updateModeUI();
+
+  resetEventForm();
+
+  eventFields.id.value = item.id;
+
+  eventFields.title.value = item.titulo || "";
+
+  eventFields.category.value = item.categoria || "";
+
+  eventFields.format.value = item.formato || "";
+
+  eventFields.image.value = imageInputValue(item.imagem);
+
+  eventFields.start.value = timestampToInput(item.dataHoraInicio);
+
+  eventFields.end.value = timestampToInput(item.dataHoraFim);
+
+  eventFields.location.value = item.local || "";
+
+  eventFields.city.value = item.cidade || "";
+
+  eventFields.latitude.value = item.latitude ?? "";
+
+  eventFields.longitude.value = item.longitude ?? "";
+
+  eventFields.description.value = item.descricao || "";
+
+  eventFields.active.checked = item.ativo === true;
+
+  eventFields.characterCount.textContent = String(
+    eventFields.description.value.length,
+  );
+
+  storeFields.form.hidden = true;
+
+  eventFields.form.hidden = false;
+
+  ui.formTitle.textContent = "Editar evento";
+
+  ui.cancelButton.textContent = "Cancelar edição";
+
+  ui.cancelButton.hidden = false;
+
+  eventFields.saveButton.textContent = "Atualizar evento";
+
+  updatePreview(eventFields, "evento", "evento-1.jpg");
+
+  focusForm(eventFields.title);
+}
+
+function editStore(id) {
+  const item = allStores.find((store) => {
+    return store.id === id;
+  });
+
+  if (!item) {
+    return;
+  }
+
+  currentMode = "stores";
+
+  updateModeUI();
+
+  resetStoreForm();
+
+  storeFields.id.value = item.id;
+
+  storeFields.name.value = item.nome || "";
+
+  storeFields.description.value = item.descricao || "";
+
+  storeFields.image.value = imageInputValue(item.imagem);
+
+  storeFields.address.value = item.endereco || "";
+
+  storeFields.neighborhood.value = item.bairro || "";
+
+  storeFields.city.value = item.cidade || "";
+
+  storeFields.state.value = item.estado || "";
+
+  storeFields.zipCode.value = item.cep || "";
+
+  storeFields.latitude.value = item.latitude ?? "";
+
+  storeFields.longitude.value = item.longitude ?? "";
+
+  storeFields.phone.value = item.telefone || "";
+
+  storeFields.whatsapp.value = item.whatsapp || "";
+
+  storeFields.instagram.value = item.instagram || "";
+
+  storeFields.website.value = item.site || "";
+
+  storeFields.hasTables.checked = item.possuiMesas === true;
+
+  storeFields.holdsEvents.checked = item.realizaEventos === true;
+
+  storeFields.partner.checked = item.parceira === true;
+
+  storeFields.active.checked = item.ativo === true;
+
+  const tcgs = Array.isArray(item.tcgs) ? item.tcgs : [];
+
+  storeTcgInputs.forEach((input) => {
+    input.checked = tcgs.includes(input.value);
+  });
+
+  storeFields.characterCount.textContent = String(
+    storeFields.description.value.length,
+  );
+
+  eventFields.form.hidden = true;
+
+  storeFields.form.hidden = false;
+
+  ui.formTitle.textContent = "Editar loja";
+
+  ui.cancelButton.textContent = "Cancelar edição";
+
+  ui.cancelButton.hidden = false;
+
+  storeFields.saveButton.textContent = "Atualizar loja";
+
+  updatePreview(storeFields, "loja", "loja-1.jpg");
+
+  focusForm(storeFields.name);
+}
+
+async function toggleStatus(collectionName, id, item, loadFunction, label) {
+  try {
+    await updateDoc(doc(db, collectionName, id), {
+      ativo: item.ativo !== true,
+
       atualizadoEm: serverTimestamp(),
     });
 
-    await loadEvents();
+    await loadFunction();
   } catch (error) {
-    console.error("[Admin] Erro ao alterar status:", error);
+    console.error(`[Admin] Erro ao alterar status de ${label}:`, error);
 
-    window.alert("Não foi possível alterar o status do evento.");
+    window.alert(`Não foi possível alterar o status de ${label}.`);
   }
 }
 
-/* ==============================
-   EXCLUIR EVENTO
-================================ */
-
-async function removeEvent(eventId) {
-  const event = allEvents.find((item) => item.id === eventId);
-
-  if (!event) {
-    return;
-  }
-
+async function removeItem(
+  collectionName,
+  id,
+  itemName,
+  title,
+  loadFunction,
+  resetFunction,
+) {
   const confirmed = window.confirm(
-    `Excluir definitivamente o evento “${event.titulo}”?`,
+    `Excluir definitivamente ${title} “${itemName}”?`,
   );
 
   if (!confirmed) {
@@ -811,94 +1336,207 @@ async function removeEvent(eventId) {
   }
 
   try {
-    await deleteDoc(doc(db, "eventos", eventId));
+    await deleteDoc(doc(db, collectionName, id));
 
-    if (eventIdInput.value === eventId) {
-      resetForm();
-    }
+    resetFunction();
 
-    await loadEvents();
+    closeForm();
+
+    await loadFunction();
   } catch (error) {
-    console.error("[Admin] Erro ao excluir:", error);
+    console.error(`[Admin] Erro ao excluir ${title}:`, error);
 
-    window.alert("Não foi possível excluir o evento.");
+    window.alert(`Não foi possível excluir ${title}.`);
   }
 }
 
-/* ==============================
-   EVENTOS DA LISTA
-================================ */
+ui.list?.addEventListener("click", (event) => {
+  const eventButton = event.target.closest("[data-event-action]");
 
-eventsList?.addEventListener("click", (event) => {
-  const actionButton = event.target.closest("[data-event-action]");
+  if (eventButton) {
+    const id = eventButton.closest("[data-event-id]")?.dataset.eventId;
 
-  if (!actionButton) {
+    const item = allEvents.find((entry) => {
+      return entry.id === id;
+    });
+
+    if (!id || !item) {
+      return;
+    }
+
+    const action = eventButton.dataset.eventAction;
+
+    if (action === "edit") {
+      editEvent(id);
+    }
+
+    if (action === "status") {
+      toggleStatus("eventos", id, item, loadEvents, "evento");
+    }
+
+    if (action === "delete") {
+      removeItem(
+        "eventos",
+        id,
+        item.titulo,
+        "o evento",
+        loadEvents,
+        resetEventForm,
+      );
+    }
+
     return;
   }
 
-  const card = actionButton.closest("[data-event-id]");
+  const storeButton = event.target.closest("[data-store-action]");
 
-  const eventId = card?.dataset.eventId;
-
-  if (!eventId) {
+  if (!storeButton) {
     return;
   }
 
-  const action = actionButton.dataset.eventAction;
+  const id = storeButton.closest("[data-store-id]")?.dataset.storeId;
+
+  const item = allStores.find((entry) => {
+    return entry.id === id;
+  });
+
+  if (!id || !item) {
+    return;
+  }
+
+  const action = storeButton.dataset.storeAction;
 
   if (action === "edit") {
-    editEvent(eventId);
+    editStore(id);
   }
 
   if (action === "status") {
-    toggleEventStatus(eventId);
+    toggleStatus("lojas", id, item, loadStores, "loja");
   }
 
   if (action === "delete") {
-    removeEvent(eventId);
+    removeItem("lojas", id, item.nome, "a loja", loadStores, resetStoreForm);
   }
 });
 
-/* ==============================
-   FILTROS
-================================ */
-
-filterButtons.forEach((button) => {
+eventFilterButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    currentFilter = button.dataset.eventFilter || "all";
+    currentEventFilter = button.dataset.eventFilter || "all";
 
-    filterButtons.forEach((filterButton) => {
-      filterButton.classList.toggle("is-active", filterButton === button);
+    eventFilterButtons.forEach((item) => {
+      item.classList.toggle("is-active", item === button);
     });
 
     renderEvents();
   });
 });
 
-/* ==============================
-   OUTROS EVENTOS
-================================ */
+storeFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    currentStoreFilter = button.dataset.storeFilter || "all";
 
-eventImageInput?.addEventListener("input", updateImagePreview);
+    storeFilterButtons.forEach((item) => {
+      item.classList.toggle("is-active", item === button);
+    });
 
-eventDescriptionInput?.addEventListener("input", () => {
-  descriptionCharacterCount.textContent = String(
-    eventDescriptionInput.value.length,
+    renderStores();
+  });
+});
+
+ui.newButton?.addEventListener("click", () => {
+  const menuIsOpen = ui.newButton.getAttribute("aria-expanded") === "true";
+
+  setNewMenu(!menuIsOpen);
+});
+
+createButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setNewMenu(false);
+
+    if (button.dataset.createType === "store") {
+      openStoreForm();
+
+      return;
+    }
+
+    openEventForm();
+  });
+});
+
+modeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const mode = button.dataset.adminMode === "stores" ? "stores" : "events";
+
+    setMode(mode);
+  });
+});
+
+ui.refreshButton?.addEventListener("click", () => {
+  if (currentMode === "stores") {
+    loadStores();
+
+    return;
+  }
+
+  loadEvents();
+});
+
+ui.cancelButton?.addEventListener("click", () => {
+  if (currentMode === "stores") {
+    resetStoreForm();
+  } else {
+    resetEventForm();
+  }
+
+  closeForm();
+});
+
+document.addEventListener("click", (event) => {
+  if (!ui.newMenu?.hidden && !event.target.closest(".admin-new-control")) {
+    setNewMenu(false);
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    setNewMenu(false);
+  }
+});
+
+eventFields.image?.addEventListener("input", () => {
+  updatePreview(eventFields, "evento", "evento-1.jpg");
+});
+
+storeFields.image?.addEventListener("input", () => {
+  updatePreview(storeFields, "loja", "loja-1.jpg");
+});
+
+eventFields.description?.addEventListener("input", () => {
+  eventFields.characterCount.textContent = String(
+    eventFields.description.value.length,
   );
 });
 
-cancelEditButton?.addEventListener("click", resetForm);
-
-newEventButton?.addEventListener("click", () => {
-  resetForm();
-  focusForm();
+storeFields.description?.addEventListener("input", () => {
+  storeFields.characterCount.textContent = String(
+    storeFields.description.value.length,
+  );
 });
 
-refreshEventsButton?.addEventListener("click", loadEvents);
+storeFields.state?.addEventListener("input", () => {
+  storeFields.state.value = storeFields.state.value.toUpperCase().slice(0, 2);
+});
 
-/* ==============================
-   INICIALIZAÇÃO
-================================ */
+storeFields.zipCode?.addEventListener("input", () => {
+  const digits = storeFields.zipCode.value.replace(/\D/g, "").slice(0, 8);
+
+  storeFields.zipCode.value =
+    digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+});
+
+installPreviewEvents(eventFields);
+
+installPreviewEvents(storeFields);
 
 async function initializeAdminPage() {
   const hasAccess = await verifyAdminAccess();
@@ -907,7 +1545,14 @@ async function initializeAdminPage() {
     return;
   }
 
-  resetForm();
+  resetEventForm();
+
+  resetStoreForm();
+
+  closeForm();
+
+  updateModeUI();
+
   await loadEvents();
 }
 
