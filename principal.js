@@ -21,36 +21,10 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-aut
 const auth = getAuth();
 
 /* ==============================
-   BANNERS LOCAIS
+   BANNERS DO FIRESTORE
 ================================ */
 
-const banners = [
-  {
-    image: "assets/banner-1.jpg",
-    link: "#",
-    alt: "Destaque principal da comunidade Origo",
-  },
-  {
-    image: "assets/banner-2.jpg",
-    link: "#",
-    alt: "Segundo destaque da comunidade Origo",
-  },
-  {
-    image: "assets/banner-3.jpg",
-    link: "#",
-    alt: "Terceiro destaque da comunidade Origo",
-  },
-  {
-    image: "assets/banner-4.jpg",
-    link: "#",
-    alt: "Quarto destaque da comunidade Origo",
-  },
-  {
-    image: "assets/banner-5.jpg",
-    link: "#",
-    alt: "Quinto destaque da comunidade Origo",
-  },
-];
+let banners = [];
 
 /* ==============================
    ELEMENTOS DA PÁGINA
@@ -111,7 +85,80 @@ let touchStartX = 0;
 let touchStartY = 0;
 let touchEndX = 0;
 let touchEndY = 0;
+function normalizeBannerDocument(documentSnapshot) {
+  const data = documentSnapshot.data();
 
+  const image = typeof data.imagem === "string" ? data.imagem.trim() : "";
+
+  const alt = typeof data.alt === "string" ? data.alt.trim() : "";
+
+  const link = typeof data.link === "string" ? data.link.trim() : "";
+
+  if (!image || !alt || !link) {
+    return null;
+  }
+
+  return {
+    id: documentSnapshot.id,
+    image,
+    alt,
+    link,
+    createdAt: data.criadoEm?.toMillis?.() || 0,
+  };
+}
+
+async function loadBanners() {
+  if (!carousel) {
+    return;
+  }
+
+  carousel.hidden = true;
+
+  stopAutoPlay();
+
+  banners = [];
+
+  if (indicatorsContainer) {
+    indicatorsContainer.innerHTML = "";
+  }
+
+  try {
+    await authReady;
+
+    const snapshot = await getDocs(collection(db, "banners"));
+
+    banners = snapshot.docs
+      .map(normalizeBannerDocument)
+      .filter(Boolean)
+      .sort((first, second) => {
+        return first.createdAt - second.createdAt;
+      });
+
+    if (!banners.length) {
+      console.warn("[Banners] Nenhum banner cadastrado no Firestore.");
+
+      return;
+    }
+
+    currentBannerIndex = 0;
+
+    createIndicators();
+
+    carousel.hidden = false;
+
+    showBanner(0);
+
+    startAutoPlay();
+
+    console.log(
+      `[Banners] ${banners.length} banner(s) carregado(s) do Firestore.`,
+    );
+  } catch (error) {
+    console.error("[Banners] Não foi possível carregar os banners:", error);
+
+    carousel.hidden = true;
+  }
+}
 /* ==============================
    INDICADORES DOS BANNERS
 ================================ */
@@ -313,7 +360,7 @@ carousel?.addEventListener("keydown", (event) => {
 bannerLink?.addEventListener("click", (event) => {
   const selectedBanner = banners[currentBannerIndex];
 
-  if (!selectedBanner.link || selectedBanner.link === "#") {
+  if (!selectedBanner?.link) {
     event.preventDefault();
   }
 });
@@ -323,11 +370,31 @@ bannerLink?.addEventListener("click", (event) => {
 ================================ */
 
 bannerImage?.addEventListener("error", () => {
-  const fallbackImage = "assets/banner-1.jpg";
+  const failedBanner = banners[currentBannerIndex];
 
-  if (!bannerImage.src.endsWith("banner-1.jpg")) {
-    bannerImage.src = fallbackImage;
+  console.error("[Banners] Imagem não encontrada:", failedBanner?.image);
+
+  banners.splice(currentBannerIndex, 1);
+
+  if (!banners.length) {
+    stopAutoPlay();
+
+    carousel.hidden = true;
+
+    if (indicatorsContainer) {
+      indicatorsContainer.innerHTML = "";
+    }
+
+    return;
   }
+
+  currentBannerIndex = currentBannerIndex % banners.length;
+
+  createIndicators();
+
+  showBanner(currentBannerIndex);
+
+  startAutoPlay();
 });
 
 /* ==============================
@@ -533,21 +600,6 @@ document.addEventListener("visibilitychange", () => {
    INICIALIZAÇÃO DOS BANNERS
 ================================ */
 
-function initializeCarousel() {
-  if (!carousel) {
-    return;
-  }
-
-  if (!banners.length) {
-    carousel.hidden = true;
-    return;
-  }
-
-  createIndicators();
-  showBanner(0);
-  startAutoPlay();
-}
-
 /* ==============================
    SEGURANÇA DO HTML
 ================================ */
@@ -725,7 +777,7 @@ function normalizeEventDocument(documentSnapshot) {
 
     category: category || "Evento",
 
-    image: image || "assets/banner-1.jpg",
+    image: image || "assets/evento-1.jpg",
 
     location: location || city || "Local a definir",
 
@@ -1015,8 +1067,8 @@ function initializeEventCards() {
     image.addEventListener(
       "error",
       () => {
-        if (!image.src.endsWith("banner-1.jpg")) {
-          image.src = "assets/banner-1.jpg";
+        if (!image.src.endsWith("evento-1.jpg")) {
+          image.src = "assets/evento-1.jpg";
         }
       },
       {
@@ -1655,11 +1707,11 @@ function initializeMapPreview() {
 ================================ */
 
 async function initializePrincipalPage() {
-  initializeCarousel();
+  await loadBanners();
 
   await loadEvents();
 
-  await loadMyMatches();
+  loadMyMatches();
 
   initializeMapPreview();
 }

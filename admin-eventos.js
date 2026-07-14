@@ -33,7 +33,8 @@ const ui = {
   eventFilters: $("admin-event-filters"),
   storeFilters: $("admin-store-filters"),
   eventsModeButton: $("admin-events-mode-button"),
-  storesModeButton: $("admin-stores-mode-button"),
+
+  bannersModeButton: $("admin-banners-mode-button"),
 };
 
 const eventFields = {
@@ -85,6 +86,17 @@ const storeFields = {
   message: $("admin-store-form-message"),
   saveButton: $("save-store-button"),
 };
+const bannerFields = {
+  form: $("admin-banner-form"),
+  id: $("banner-id"),
+  image: $("banner-image"),
+  imagePreview: $("banner-image-preview"),
+  imageMessage: $("banner-image-preview-message"),
+  alt: $("banner-alt"),
+  link: $("banner-link"),
+  message: $("admin-banner-form-message"),
+  saveButton: $("save-banner-button"),
+};
 
 const createButtons = document.querySelectorAll("[data-create-type]");
 
@@ -107,6 +119,7 @@ let currentStoreFilter = "all";
 let allEvents = [];
 
 let allStores = [];
+let allBanners = [];
 
 let isSaving = false;
 
@@ -163,7 +176,31 @@ function normalizeImagePath(value, prefix) {
 
   return pattern.test(name) ? `assets/${name}` : null;
 }
+function normalizeBannerLink(value) {
+  const link = String(value || "").trim();
 
+  if (!link) {
+    return null;
+  }
+
+  if (/^https?:\/\//i.test(link)) {
+    try {
+      const url = new URL(link);
+
+      if (!["http:", "https:"].includes(url.protocol)) {
+        return null;
+      }
+
+      return link;
+    } catch {
+      return null;
+    }
+  }
+
+  const internalPagePattern = /^(?:\.\/)?[a-z0-9_-]+\.html(?:[?#].*)?$/i;
+
+  return internalPagePattern.test(link) ? link : null;
+}
 function imageInputValue(path) {
   return String(path || "").replace(/^assets\//i, "");
 }
@@ -307,8 +344,8 @@ function closeForm() {
   }
 
   clearMessage(eventFields.message);
-
   clearMessage(storeFields.message);
+  clearMessage(bannerFields.message);
 }
 
 function focusForm(input) {
@@ -326,32 +363,42 @@ function focusForm(input) {
 
 function updateModeUI() {
   const eventsMode = currentMode === "events";
+  const storesMode = currentMode === "stores";
+  const bannersMode = currentMode === "banners";
 
   ui.eventsModeButton?.classList.toggle("is-active", eventsMode);
-
-  ui.storesModeButton?.classList.toggle("is-active", !eventsMode);
+  ui.storesModeButton?.classList.toggle("is-active", storesMode);
+  ui.bannersModeButton?.classList.toggle("is-active", bannersMode);
 
   ui.eventsModeButton?.setAttribute("aria-selected", String(eventsMode));
 
-  ui.storesModeButton?.setAttribute("aria-selected", String(!eventsMode));
+  ui.storesModeButton?.setAttribute("aria-selected", String(storesMode));
+
+  ui.bannersModeButton?.setAttribute("aria-selected", String(bannersMode));
 
   if (ui.eventFilters) {
     ui.eventFilters.hidden = !eventsMode;
   }
 
   if (ui.storeFilters) {
-    ui.storeFilters.hidden = eventsMode;
+    ui.storeFilters.hidden = !storesMode;
   }
 
   if (ui.listTitle) {
-    ui.listTitle.textContent = eventsMode
-      ? "Eventos cadastrados"
-      : "Lojas cadastradas";
+    if (eventsMode) {
+      ui.listTitle.textContent = "Eventos cadastrados";
+    } else if (storesMode) {
+      ui.listTitle.textContent = "Lojas cadastradas";
+    } else {
+      ui.listTitle.textContent = "Banners cadastrados";
+    }
   }
 }
 
 async function setMode(mode, reload = true) {
-  currentMode = mode === "stores" ? "stores" : "events";
+  const allowedModes = ["events", "stores", "banners"];
+
+  currentMode = allowedModes.includes(mode) ? mode : "events";
 
   setNewMenu(false);
 
@@ -367,6 +414,12 @@ async function setMode(mode, reload = true) {
 
   if (currentMode === "stores") {
     await loadStores();
+
+    return;
+  }
+
+  if (currentMode === "banners") {
+    await loadBanners();
 
     return;
   }
@@ -423,7 +476,24 @@ function resetStoreForm() {
 
   clearMessage(storeFields.message);
 }
+function resetBannerForm() {
+  bannerFields.form?.reset();
 
+  bannerFields.id.value = "";
+
+  bannerFields.image.value = "";
+
+  bannerFields.imagePreview.removeAttribute("src");
+  bannerFields.imagePreview.hidden = true;
+
+  bannerFields.imageMessage.hidden = false;
+  bannerFields.imageMessage.textContent =
+    "Digite o nome da imagem para visualizar.";
+
+  bannerFields.saveButton.textContent = "Salvar banner";
+
+  clearMessage(bannerFields.message);
+}
 function openEventForm() {
   currentMode = "events";
 
@@ -434,6 +504,7 @@ function openEventForm() {
   resetEventForm();
 
   storeFields.form.hidden = true;
+  bannerFields.form.hidden = true;
 
   eventFields.form.hidden = false;
 
@@ -456,6 +527,7 @@ function openStoreForm() {
   resetStoreForm();
 
   eventFields.form.hidden = true;
+  bannerFields.form.hidden = true;
 
   storeFields.form.hidden = false;
 
@@ -467,7 +539,26 @@ function openStoreForm() {
 
   focusForm(storeFields.name);
 }
+function openBannerForm() {
+  currentMode = "banners";
 
+  updateModeUI();
+
+  loadBanners();
+
+  resetBannerForm();
+
+  eventFields.form.hidden = true;
+  storeFields.form.hidden = true;
+  bannerFields.form.hidden = false;
+
+  ui.formTitle.textContent = "Novo banner";
+
+  ui.cancelButton.textContent = "Fechar formulário";
+  ui.cancelButton.hidden = false;
+
+  focusForm(bannerFields.image);
+}
 function eventFormData() {
   const start = parseDateTime(eventFields.start.value);
 
@@ -697,7 +788,43 @@ function storeFormData() {
     ativo: storeFields.active.checked,
   };
 }
+function bannerFormData() {
+  const image = normalizeImagePath(bannerFields.image.value, "banner");
 
+  const link = normalizeBannerLink(bannerFields.link.value);
+
+  const invalid = (message, input) => {
+    showMessage(bannerFields.message, message);
+
+    input?.focus();
+
+    return null;
+  };
+
+  if (!image) {
+    return invalid(
+      "Use uma imagem válida, como banner-1.jpg.",
+      bannerFields.image,
+    );
+  }
+
+  if (bannerFields.alt.value.trim().length < 2) {
+    return invalid("Digite uma legenda ALT para o banner.", bannerFields.alt);
+  }
+
+  if (!link) {
+    return invalid(
+      "Informe um link válido começando com https:// ou uma página como mapa.html.",
+      bannerFields.link,
+    );
+  }
+
+  return {
+    imagem: image,
+    alt: bannerFields.alt.value.trim(),
+    link,
+  };
+}
 function setSaving(fields, saving, entity) {
   isSaving = saving;
 
@@ -838,7 +965,70 @@ storeFields.form?.addEventListener("submit", async (event) => {
     setSaving(storeFields, false, "loja");
   }
 });
+bannerFields.form?.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
+  if (isSaving) {
+    return;
+  }
+
+  clearMessage(bannerFields.message);
+
+  const data = bannerFormData();
+
+  if (!data) {
+    return;
+  }
+
+  setSaving(bannerFields, true, "banner");
+
+  try {
+    const id = bannerFields.id.value.trim();
+
+    if (id) {
+      await updateDoc(doc(db, "banners", id), {
+        ...data,
+        atualizadoEm: serverTimestamp(),
+      });
+
+      showMessage(
+        bannerFields.message,
+        "Banner atualizado com sucesso!",
+        "success",
+      );
+    } else {
+      await addDoc(collection(db, "banners"), {
+        ...data,
+        criadoEm: serverTimestamp(),
+        atualizadoEm: serverTimestamp(),
+      });
+
+      showMessage(
+        bannerFields.message,
+        "Banner criado com sucesso!",
+        "success",
+      );
+    }
+
+    await loadBanners();
+
+    window.setTimeout(() => {
+      resetBannerForm();
+      closeForm();
+    }, 900);
+  } catch (error) {
+    console.error("[Admin] Erro ao salvar banner:", error);
+
+    showMessage(
+      bannerFields.message,
+      error?.code === "permission-denied"
+        ? "O Firebase bloqueou a operação. Confira as regras da coleção banners."
+        : "Não foi possível salvar o banner.",
+    );
+  } finally {
+    setSaving(bannerFields, false, "banner");
+  }
+});
 function eventStatus(item) {
   const end = item.dataHoraFim?.toDate?.();
 
@@ -1028,7 +1218,65 @@ function storeCard(item) {
     </article>
   `;
 }
+function bannerCard(item) {
+  return `
+    <article
+      class="admin-event-card"
+      data-banner-id="${escapeHTML(item.id)}"
+    >
+      <div class="admin-event-card-image">
+        <img
+          src="${escapeHTML(item.imagem)}"
+          alt="${escapeHTML(item.alt)}"
+        >
 
+        <span class="admin-event-status is-common">
+          Banner
+        </span>
+      </div>
+
+      <div class="admin-event-card-content">
+        <span class="admin-event-category">
+          Carrossel principal
+        </span>
+
+        <h3>
+          ${escapeHTML(item.alt)}
+        </h3>
+
+        <div class="admin-event-meta">
+          <p>
+            <strong>Imagem:</strong>
+            ${escapeHTML(item.imagem)}
+          </p>
+
+          <p>
+            <strong>Link:</strong>
+            ${escapeHTML(item.link)}
+          </p>
+        </div>
+
+        <div class="admin-event-card-actions">
+          <button
+            class="admin-event-action"
+            type="button"
+            data-banner-action="edit"
+          >
+            Editar
+          </button>
+
+          <button
+            class="admin-event-action is-delete"
+            type="button"
+            data-banner-action="delete"
+          >
+            Excluir
+          </button>
+        </div>
+      </div>
+    </article>
+  `;
+}
 function renderEvents() {
   const items = allEvents.filter((item) => {
     return (
@@ -1074,10 +1322,24 @@ function renderStores() {
           </p>
         `;
 }
-
+function renderBanners() {
+  ui.list.innerHTML = allBanners.length
+    ? allBanners.map(bannerCard).join("")
+    : `
+        <p class="admin-events-empty">
+          Nenhum banner cadastrado.
+        </p>
+      `;
+}
 function renderCurrentList() {
   if (currentMode === "stores") {
     renderStores();
+
+    return;
+  }
+
+  if (currentMode === "banners") {
+    renderBanners();
 
     return;
   }
@@ -1160,7 +1422,44 @@ async function loadStores() {
     `;
   }
 }
+async function loadBanners() {
+  ui.list.innerHTML = `
+    <p class="admin-events-empty">
+      Carregando banners...
+    </p>
+  `;
 
+  try {
+    const snapshot = await getDocs(collection(db, "banners"));
+
+    allBanners = snapshot.docs
+      .map((item) => {
+        return {
+          id: item.id,
+          ...item.data(),
+        };
+      })
+      .sort((first, second) => {
+        const firstDate = first.criadoEm?.toMillis?.() || 0;
+
+        const secondDate = second.criadoEm?.toMillis?.() || 0;
+
+        return secondDate - firstDate;
+      });
+
+    if (currentMode === "banners") {
+      renderBanners();
+    }
+  } catch (error) {
+    console.error("[Admin] Erro ao carregar banners:", error);
+
+    ui.list.innerHTML = `
+      <p class="admin-events-empty">
+        Não foi possível carregar os banners.
+      </p>
+    `;
+  }
+}
 function editEvent(id) {
   const item = allEvents.find((event) => {
     return event.id === id;
@@ -1207,6 +1506,7 @@ function editEvent(id) {
   );
 
   storeFields.form.hidden = true;
+  bannerFields.form.hidden = true;
 
   eventFields.form.hidden = false;
 
@@ -1287,6 +1587,7 @@ function editStore(id) {
   );
 
   eventFields.form.hidden = true;
+  bannerFields.form.hidden = true;
 
   storeFields.form.hidden = false;
 
@@ -1302,7 +1603,41 @@ function editStore(id) {
 
   focusForm(storeFields.name);
 }
+function editBanner(id) {
+  const item = allBanners.find((banner) => {
+    return banner.id === id;
+  });
 
+  if (!item) {
+    return;
+  }
+
+  currentMode = "banners";
+
+  updateModeUI();
+
+  resetBannerForm();
+
+  bannerFields.id.value = item.id;
+  bannerFields.image.value = imageInputValue(item.imagem);
+  bannerFields.alt.value = item.alt || "";
+  bannerFields.link.value = item.link || "";
+
+  eventFields.form.hidden = true;
+  storeFields.form.hidden = true;
+  bannerFields.form.hidden = false;
+
+  ui.formTitle.textContent = "Editar banner";
+
+  ui.cancelButton.textContent = "Cancelar edição";
+  ui.cancelButton.hidden = false;
+
+  bannerFields.saveButton.textContent = "Atualizar banner";
+
+  updatePreview(bannerFields, "banner", "banner-1.jpg");
+
+  focusForm(bannerFields.image);
+}
 async function toggleStatus(collectionName, id, item, loadFunction, label) {
   try {
     await updateDoc(doc(db, collectionName, id), {
@@ -1390,13 +1725,43 @@ ui.list?.addEventListener("click", (event) => {
 
   const storeButton = event.target.closest("[data-store-action]");
 
-  if (!storeButton) {
+  if (storeButton) {
+    const id = storeButton.closest("[data-store-id]")?.dataset.storeId;
+
+    const item = allStores.find((entry) => {
+      return entry.id === id;
+    });
+
+    if (!id || !item) {
+      return;
+    }
+
+    const action = storeButton.dataset.storeAction;
+
+    if (action === "edit") {
+      editStore(id);
+    }
+
+    if (action === "status") {
+      toggleStatus("lojas", id, item, loadStores, "loja");
+    }
+
+    if (action === "delete") {
+      removeItem("lojas", id, item.nome, "a loja", loadStores, resetStoreForm);
+    }
+
     return;
   }
 
-  const id = storeButton.closest("[data-store-id]")?.dataset.storeId;
+  const bannerButton = event.target.closest("[data-banner-action]");
 
-  const item = allStores.find((entry) => {
+  if (!bannerButton) {
+    return;
+  }
+
+  const id = bannerButton.closest("[data-banner-id]")?.dataset.bannerId;
+
+  const item = allBanners.find((entry) => {
     return entry.id === id;
   });
 
@@ -1404,18 +1769,21 @@ ui.list?.addEventListener("click", (event) => {
     return;
   }
 
-  const action = storeButton.dataset.storeAction;
+  const action = bannerButton.dataset.bannerAction;
 
   if (action === "edit") {
-    editStore(id);
-  }
-
-  if (action === "status") {
-    toggleStatus("lojas", id, item, loadStores, "loja");
+    editBanner(id);
   }
 
   if (action === "delete") {
-    removeItem("lojas", id, item.nome, "a loja", loadStores, resetStoreForm);
+    removeItem(
+      "banners",
+      id,
+      item.alt,
+      "o banner",
+      loadBanners,
+      resetBannerForm,
+    );
   }
 });
 
@@ -1453,8 +1821,16 @@ createButtons.forEach((button) => {
   button.addEventListener("click", () => {
     setNewMenu(false);
 
-    if (button.dataset.createType === "store") {
+    const type = button.dataset.createType;
+
+    if (type === "store") {
       openStoreForm();
+
+      return;
+    }
+
+    if (type === "banner") {
+      openBannerForm();
 
       return;
     }
@@ -1465,7 +1841,11 @@ createButtons.forEach((button) => {
 
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    const mode = button.dataset.adminMode === "stores" ? "stores" : "events";
+    const requestedMode = button.dataset.adminMode;
+
+    const mode = ["events", "stores", "banners"].includes(requestedMode)
+      ? requestedMode
+      : "events";
 
     setMode(mode);
   });
@@ -1478,12 +1858,20 @@ ui.refreshButton?.addEventListener("click", () => {
     return;
   }
 
+  if (currentMode === "banners") {
+    loadBanners();
+
+    return;
+  }
+
   loadEvents();
 });
 
 ui.cancelButton?.addEventListener("click", () => {
   if (currentMode === "stores") {
     resetStoreForm();
+  } else if (currentMode === "banners") {
+    resetBannerForm();
   } else {
     resetEventForm();
   }
@@ -1509,6 +1897,9 @@ eventFields.image?.addEventListener("input", () => {
 
 storeFields.image?.addEventListener("input", () => {
   updatePreview(storeFields, "loja", "loja-1.jpg");
+});
+bannerFields.image?.addEventListener("input", () => {
+  updatePreview(bannerFields, "banner", "banner-1.jpg");
 });
 
 eventFields.description?.addEventListener("input", () => {
@@ -1537,6 +1928,7 @@ storeFields.zipCode?.addEventListener("input", () => {
 installPreviewEvents(eventFields);
 
 installPreviewEvents(storeFields);
+installPreviewEvents(storeFields);
 
 async function initializeAdminPage() {
   const hasAccess = await verifyAdminAccess();
@@ -1548,6 +1940,7 @@ async function initializeAdminPage() {
   resetEventForm();
 
   resetStoreForm();
+  resetBannerForm();
 
   closeForm();
 

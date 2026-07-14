@@ -79,6 +79,9 @@
             <button class="admin-new-menu-option" type="button" data-create-type="store">
               Cadastrar loja
             </button>
+            <button class="admin-new-menu-option" type="button" data-create-type="banner">
+              Cadastrar banner
+            </button>
           </div>
 
         </div>
@@ -90,6 +93,9 @@
 
           <button class="admin-mode-button" id="admin-stores-mode-button" type="button" role="tab" aria-selected="false" data-admin-mode="stores">
             Lojas
+          </button>
+          <button class="admin-mode-button" id="admin-banners-mode-button" type="button" role="tab" aria-selected="false" data-admin-mode="banners">
+            Banners
           </button>
         </div>
       </section>
@@ -549,6 +555,65 @@
 
           <button class="admin-save-button" id="save-store-button" type="submit">
             Salvar loja
+          </button>
+        </form>
+        <form class="admin-event-form admin-banner-form" id="admin-banner-form" novalidate hidden>
+          <input id="banner-id" type="hidden">
+
+          <div class="admin-form-group">
+            <label for="banner-image">
+              Imagem
+            </label>
+
+            <div class="admin-image-input">
+              <span>
+                assets/
+              </span>
+
+              <input id="banner-image" type="text" maxlength="220" placeholder="banner-1.jpg" autocomplete="off" required>
+            </div>
+
+            <small>
+              Use nomes como banner-1.jpg, banner-2.png ou banner-3.webp.
+            </small>
+          </div>
+
+          <div class="admin-image-preview" id="banner-image-preview-wrapper">
+            <img id="banner-image-preview" src="assets/banner-1.jpg" alt="Prévia do banner">
+
+            <span id="banner-image-preview-message" hidden>
+              Imagem não encontrada na pasta assets.
+            </span>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="banner-alt">
+              Legenda ALT
+            </label>
+
+            <input id="banner-alt" type="text" maxlength="180" placeholder="Ex.: Promoção da loja parceira Universo Ludo" required>
+
+            <small>
+              Descreva de forma breve o conteúdo da imagem.
+            </small>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="banner-link">
+              Link
+            </label>
+
+            <input id="banner-link" type="text" maxlength="500" placeholder="https://www.instagram.com/nomedaloja" required>
+
+            <small>
+              Pode ser site, Instagram, WhatsApp ou uma página do Origo.
+            </small>
+          </div>
+
+          <p class="admin-form-message" id="admin-banner-form-message" role="status" aria-live="polite" hidden></p>
+
+          <button class="admin-save-button" id="save-banner-button" type="submit">
+            Salvar banner
           </button>
         </form>
       </section>
