@@ -309,6 +309,8 @@ async function initializeOnlineMatch() {
   try {
     currentUser = await authReady;
 
+    console.log("[Partida Online] UID autenticado:", currentUser?.uid);
+
     await loadOnlineMatch();
   } catch (error) {
     console.error("[Partida Online] Não foi possível abrir a sala:", error);

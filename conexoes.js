@@ -284,6 +284,45 @@ async function loadConnectionClassification(connectionId, userId) {
   }
 }
 /* ==============================
+   PARTIDA DA CONEXÃO
+================================ */
+
+async function loadConnectionMatch(inviteId, userId) {
+  if (!inviteId || !userId) {
+    return null;
+  }
+
+  try {
+    const matchReference = doc(db, "partidas", inviteId);
+
+    const snapshot = await getDoc(matchReference);
+
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    const data = snapshot.data();
+
+    const participants = Array.isArray(data.participantes)
+      ? data.participantes
+      : [];
+
+    if (!participants.includes(userId)) {
+      return null;
+    }
+
+    return {
+      id: snapshot.id,
+
+      ...data,
+    };
+  } catch (error) {
+    console.error("[Conexões] Não foi possível carregar a partida:", error);
+
+    return null;
+  }
+}
+/* ==============================
    CARREGAR CONEXÕES
 ================================ */
 
@@ -309,11 +348,15 @@ async function loadActiveConnections(userId) {
           return participantId !== userId;
         }) || "";
 
-      const [otherProfile, classification] = await Promise.all([
-        loadPublicProfile(otherUserId),
+      const [otherProfile, classification, connectionMatch] = await Promise.all(
+        [
+          loadPublicProfile(otherUserId),
 
-        loadConnectionClassification(documentSnapshot.id, userId),
-      ]);
+          loadConnectionClassification(documentSnapshot.id, userId),
+
+          loadConnectionMatch(data.conviteId, userId),
+        ],
+      );
 
       return {
         id: documentSnapshot.id,
@@ -324,6 +367,7 @@ async function loadActiveConnections(userId) {
 
         otherProfile,
         classification,
+        connectionMatch,
       };
     }),
   );
@@ -497,6 +541,24 @@ function renderActiveConnections() {
 
       const classification = connection.classification || "";
 
+      const connectionMatch = connection.connectionMatch || null;
+
+      const onlineMatchButton =
+        connectionMatch?.modalidade === "online" &&
+        connectionMatch?.status === "confirmada" &&
+        connectionMatch?.id
+          ? `
+        <a
+          class="connection-online-match-button"
+          href="partida-online.html?id=${escapeHTML(
+            encodeURIComponent(connectionMatch.id),
+          )}"
+        >
+          Entrar na sala
+        </a>
+      `
+          : "";
+
       const classificationBadge =
         classification === "amigo"
           ? `
@@ -530,8 +592,10 @@ function renderActiveConnections() {
 
               ${classificationBadge}
 
-              <div
-                class="connection-classification"
+${onlineMatchButton}
+
+<div
+  class="connection-classification"
                 role="group"
                 aria-label="Classificar ${escapeHTML(playerName)}"
               >

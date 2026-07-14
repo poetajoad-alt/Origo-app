@@ -460,6 +460,48 @@ body {
   font-size: 12px;
   font-weight: 600;
 }
+/* ==============================
+   PARTIDA ONLINE
+================================ */
+
+.connection-online-match-button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 12px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9d923;
+  color: #082632;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.connection-online-match-button:hover {
+  background-color: #ffe24e;
+  box-shadow: 0 6px 16px rgba(8, 38, 50, 0.18);
+}
+
+.connection-online-match-button:active {
+  transform: scale(0.97);
+}
+
+.connection-online-match-button:focus-visible {
+  outline: 3px solid #187498;
+  outline-offset: 3px;
+}
 
 /* ==============================
    TELAS MENORES
