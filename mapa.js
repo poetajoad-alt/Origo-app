@@ -8,7 +8,7 @@ import { db } from "./firebase-config.js";
 import { authStateReady } from "./auth-guard.js";
 import { subscribeToPresence } from "./presence.js";
 import { applyPresenceToPoints, describePlayerStatus } from "./presence-core.mjs";
-import { createMapCollectionLoaders, normalizeCoordinates, isPublicProfileVisible, isEventCurrent } from "./map-data.mjs";
+import { createMapCollectionLoaders, normalizeCoordinates, isPublicProfileVisible, isEventCurrent, filterMapPointsForViewer } from "./map-data.mjs";
 
 import {
   addDoc,
@@ -1761,7 +1761,9 @@ async function loadMapPoints() {
   }
 
   const publicPlayers =
-    results[0].status === "fulfilled" ? results[0].value : [];
+    results[0].status === "fulfilled"
+      ? filterMapPointsForViewer(results[0].value, currentUserId)
+      : [];
 
   const activeStores =
     results[1].status === "fulfilled" ? results[1].value : [];
