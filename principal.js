@@ -5,7 +5,10 @@
 ================================ */
 
 import { db } from "./firebase-config.js";
-import { authReady } from "./auth-guard.js";
+import { authStateReady } from "./auth-guard.js";
+import { subscribeToPresence } from "./presence.js";
+import { applyPresenceToPoints } from "./presence-core.mjs";
+import { createMapCollectionLoaders, loadMapCollections, filterMapPointsForViewer } from "./map-data.mjs";
 
 import {
   collection,
@@ -16,15 +19,12 @@ import {
   where,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-
-const auth = getAuth();
-
 /* ==============================
    BANNERS DO FIRESTORE
 ================================ */
 
 let banners = [];
+let unsubscribePreviewPresence = null;
 
 /* ==============================
    ELEMENTOS DA PÁGINA
@@ -123,8 +123,6 @@ async function loadBanners() {
   }
 
   try {
-    await authReady;
-
     const snapshot = await getDocs(collection(db, "banners"));
 
     banners = snapshot.docs
@@ -1094,8 +1092,6 @@ async function loadEvents() {
   `;
 
   try {
-    await authReady;
-
     const eventsQuery = query(
       collection(db, "eventos"),
 
@@ -1378,15 +1374,15 @@ async function loadMyMatches() {
   }
 
   try {
-    await authReady;
-
-    const currentUser = auth.currentUser;
+    const currentUser = await authStateReady;
 
     if (!currentUser) {
       matchesTrack.innerHTML = `
-        <p class="events-loading">
-          Entre na sua conta para visualizar suas partidas.
-        </p>
+        <div class="matches-guest-prompt">
+          <p>Entre na sua conta para acompanhar convites e partidas.</p>
+          <a class="section-link" href="login.html?redirect=principal.html%23matches-title">Entrar</a>
+          <a class="section-link" href="registre-se.html?redirect=principal.html%23matches-title">Criar conta</a>
+        </div>
       `;
 
       return;
@@ -1473,37 +1469,6 @@ const MAP_ATTRIBUTION =
   "OpenStreetMap</a> contributors";
 
 const HOME_MAP_CENTER = [-23.455, -46.535];
-
-const communityMapPoints = [
-  {
-    type: "player",
-    name: "Jogador disponível",
-    latitude: -23.4525,
-    longitude: -46.5305,
-    available: true,
-  },
-  {
-    type: "player",
-    name: "Jogador próximo",
-    latitude: -23.4585,
-    longitude: -46.538,
-    available: false,
-  },
-  {
-    type: "store",
-    name: "Loja parceira",
-    latitude: -23.454,
-    longitude: -46.542,
-    available: false,
-  },
-  {
-    type: "event",
-    name: "Evento de TCG",
-    latitude: -23.4605,
-    longitude: -46.5315,
-    available: false,
-  },
-];
 
 function getMarkerConfiguration(type) {
   const markerConfigurations = {
@@ -1597,13 +1562,13 @@ function getMarkerConfiguration(type) {
   return markerConfigurations[type] || markerConfigurations.player;
 }
 
-function createCommunityMarkerIcon(type, isAvailable = false) {
+function createCommunityMarkerIcon(type, presenceState = "unknown") {
   const configuration = getMarkerConfiguration(type);
 
-  const statusElement = isAvailable
+  const statusElement = type === "player"
     ? `
         <span
-          class="origo-marker-status"
+          class="origo-marker-status is-${["online", "offline"].includes(presenceState) ? presenceState : "unknown"}"
           aria-hidden="true"
         ></span>
       `
@@ -1654,7 +1619,7 @@ function createCommunityMarkerIcon(type, isAvailable = false) {
   });
 }
 
-function initializeMapPreview() {
+async function initializeMapPreview() {
   const mapElement = document.getElementById("community-map-preview");
 
   if (!mapElement) {
@@ -1687,15 +1652,102 @@ function initializeMapPreview() {
     attribution: MAP_ATTRIBUTION,
   }).addTo(previewMap);
 
-  communityMapPoints.forEach((point) => {
-    const markerIcon = createCommunityMarkerIcon(point.type, point.available);
+  const mapStatus = document.getElementById("community-map-status");
 
-    L.marker([point.latitude, point.longitude], {
-      icon: markerIcon,
-      interactive: false,
-      keyboard: false,
-    }).addTo(previewMap);
+  if (!mapStatus) return;
+
+  const currentUser = await authStateReady;
+  const includePlayers = Boolean(currentUser);
+  const mapSectionTitle = document.getElementById("map-section-title");
+  const playerLegend = document.querySelector("[data-map-legend='player']");
+  const mapPreview = document.getElementById("community-map-preview");
+
+  if (!includePlayers) {
+    if (mapSectionTitle) mapSectionTitle.textContent = "Lojas e eventos no mapa";
+    if (playerLegend) playerLegend.hidden = true;
+    mapPreview?.setAttribute("aria-label", "Prévia do mapa público com lojas e eventos");
+    const discoveryTitle = document.querySelector("[data-map-discovery-title]");
+    const discoveryCopy = document.querySelector("[data-map-discovery-copy]");
+    if (discoveryTitle) discoveryTitle.textContent = "Explorar lojas e eventos";
+    if (discoveryCopy) discoveryCopy.textContent = "Veja pontos públicos no mapa";
+  } else {
+    if (mapSectionTitle) mapSectionTitle.textContent = "Encontre jogadores e pontos da comunidade";
+    if (playerLegend) playerLegend.hidden = false;
+    mapPreview?.setAttribute("aria-label", "Prévia do mapa da comunidade com jogadores, lojas e eventos próximos");
+    const discoveryTitle = document.querySelector("[data-map-discovery-title]");
+    const discoveryCopy = document.querySelector("[data-map-discovery-copy]");
+    if (discoveryTitle) discoveryTitle.textContent = "Encontrar jogadores";
+    if (discoveryCopy) discoveryCopy.textContent = "Explore o mapa da comunidade";
+  }
+
+  mapStatus.textContent = includePlayers
+    ? "Carregando jogadores, lojas e eventos…"
+    : "Carregando lojas e eventos…";
+  mapStatus.dataset.state = "loading";
+
+  const loaders = createMapCollectionLoaders({
+    db,
+    collection,
+    getDocs,
+    query,
+    where,
+    includePlayers,
+    waitForAuth: () => authStateReady,
   });
+
+  const result = await loadMapCollections(loaders);
+  let previewPoints = filterMapPointsForViewer(result.points, currentUser?.uid);
+  const hasVisiblePoints = previewPoints.length > 0;
+  const previewMarkers = new Map();
+  const renderPreviewMarkers = () => {
+    previewPoints.forEach((point) => {
+      const markerIcon = createCommunityMarkerIcon(point.type, point.presenceState);
+      const existingMarker = previewMarkers.get(point.id);
+      if (existingMarker) {
+        existingMarker.setIcon(markerIcon);
+        return;
+      }
+      const marker = L.marker([point.latitude, point.longitude], {
+        icon: markerIcon,
+        interactive: false,
+        keyboard: false,
+      }).addTo(previewMap);
+      previewMarkers.set(point.id, marker);
+    });
+  };
+  renderPreviewMarkers();
+
+  const visiblePlayerIds = previewPoints
+    .filter((point) => point.type === "player")
+    .map((point) => point.id);
+
+  if (includePlayers && visiblePlayerIds.length && !unsubscribePreviewPresence) {
+    unsubscribePreviewPresence = subscribeToPresence(
+      visiblePlayerIds,
+      (snapshot, known) => {
+        previewPoints = applyPresenceToPoints(previewPoints, snapshot, known);
+        renderPreviewMarkers();
+      },
+      (error) => {
+        console.warn("[Prévia do mapa] Não foi possível atualizar a presença de um perfil visível.", error);
+      },
+    );
+  }
+
+  if (result.hasErrors) {
+    mapStatus.textContent = hasVisiblePoints
+      ? "Parte das informações do mapa não pôde ser carregada."
+      : "Não foi possível carregar as informações do mapa.";
+    mapStatus.dataset.state = "error";
+  } else if (!hasVisiblePoints) {
+    mapStatus.textContent = includePlayers
+      ? "Ainda não há jogadores, lojas ou eventos para exibir."
+      : "Ainda não há lojas ou eventos para exibir.";
+    mapStatus.dataset.state = "empty";
+  } else {
+    mapStatus.textContent = "";
+    mapStatus.dataset.state = "loaded";
+  }
 
   window.requestAnimationFrame(() => {
     previewMap.invalidateSize();
@@ -1706,14 +1758,12 @@ function initializeMapPreview() {
    INICIALIZAÇÃO
 ================================ */
 
-async function initializePrincipalPage() {
-  await loadBanners();
-
-  await loadEvents();
-
+function initializePrincipalPage() {
+  loadBanners();
+  loadEvents();
   loadMyMatches();
-
   initializeMapPreview();
 }
 
 initializePrincipalPage();
+

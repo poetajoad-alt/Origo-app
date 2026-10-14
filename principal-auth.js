@@ -6,7 +6,9 @@
 
 import { auth, db } from "./firebase-config.js";
 
-import { authReady } from "./auth-guard.js";
+import { authStateReady } from "./auth-guard.js";
+import { buildAuthEntryUrl } from "./auth-routes.mjs";
+import { stopPresence } from "./presence.js";
 
 import { signOut } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
@@ -31,7 +33,40 @@ function getMenuElements() {
 
     logoutButton: document.getElementById("logout-button"),
     adminLink: document.getElementById("side-menu-admin-link"),
+    userSection: document.getElementById("side-menu-user"),
+    guestLinks: document.getElementById("side-menu-auth-links"),
   };
+}
+
+function setAuthenticatedNavigation(user) {
+  document.querySelectorAll("[data-auth-only]").forEach((element) => {
+    element.hidden = !user;
+  });
+
+  const { userSection, guestLinks, adminLink } = getMenuElements();
+  if (userSection) userSection.hidden = !user;
+  if (guestLinks) guestLinks.hidden = Boolean(user);
+  const homeGuestActions = document.getElementById("home-guest-actions");
+  if (homeGuestActions) homeGuestActions.hidden = Boolean(user);
+  if (adminLink) adminLink.hidden = true;
+
+  const destination = "principal.html";
+  const links = [
+    ["side-menu-login-link", "login.html"],
+    ["side-menu-register-link", "registre-se.html"],
+    ["desktop-login-link", "login.html"],
+    ["desktop-register-link", "registre-se.html"],
+    ["mobile-login-link", "login.html"],
+    ["home-login-link", "login.html"],
+    ["home-register-link", "registre-se.html"],
+  ];
+  for (const [id, page] of links) {
+    const link = document.getElementById(id);
+    if (link) {
+      link.href = buildAuthEntryUrl(page, destination, window.location.origin);
+      link.hidden = Boolean(user);
+    }
+  }
 }
 
 /* ==============================
@@ -171,18 +206,17 @@ async function updateAdminMenu(user) {
   }
 }
 async function loadSideMenuUser() {
+  const user = await authStateReady;
+  setAuthenticatedNavigation(user);
+  if (!user) return;
+
   try {
-    const user = await authReady;
-
-    console.log("[Principal Auth] Usuário autenticado:", user.uid);
-
     const userReference = doc(db, "usuarios", user.uid);
 
     const userSnapshot = await getDoc(userReference);
 
     const userData = userSnapshot.exists() ? userSnapshot.data() : {};
 
-    console.log("[Principal Auth] Dados encontrados:", userData);
 
     const name =
       typeof userData.nome === "string" && userData.nome.trim()
@@ -207,22 +241,12 @@ async function loadSideMenuUser() {
     await updateAdminMenu(user);
   } catch (error) {
     console.error("[Principal Auth] Erro ao carregar usuário:", error);
-
-    try {
-      const user = await authReady;
-
-      fillSideMenu({
-        name: getFallbackName(user),
-        email: user.email || "",
-        photoURL: user.photoURL || "",
-      });
-      await updateAdminMenu(user);
-    } catch (fallbackError) {
-      console.error(
-        "[Principal Auth] Falha também no fallback:",
-        fallbackError,
-      );
-    }
+    fillSideMenu({
+      name: getFallbackName(user),
+      email: user.email || "",
+      photoURL: user.photoURL || "",
+    });
+    await updateAdminMenu(user);
   }
 }
 
@@ -254,11 +278,12 @@ function initializeLogout() {
     logoutButton.textContent = "Saindo...";
 
     try {
+      await stopPresence();
       await signOut(auth);
 
       console.log("[Principal Auth] Logout realizado com sucesso.");
 
-      window.location.replace("index.html");
+      window.location.replace("principal.html");
     } catch (error) {
       console.error("[Principal Auth] Erro ao sair:", error);
 
@@ -288,3 +313,4 @@ if (document.readyState === "loading") {
 } else {
   initializePrincipalAuth();
 }
+

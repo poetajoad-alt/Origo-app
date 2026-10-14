@@ -1,7 +1,7 @@
 "use strict";
 
 import { db } from "./firebase-config.js";
-import { authReady } from "./auth-guard.js";
+import { requireAuth } from "./auth-guard.js";
 
 import {
   addDoc,
@@ -296,7 +296,7 @@ function formatTimestamp(timestamp) {
 
 async function verifyAdminAccess() {
   try {
-    currentAdminUser = await authReady;
+    currentAdminUser = await requireAuth();
 
     const adminReference = doc(db, "admins", currentAdminUser.uid);
 
@@ -316,6 +316,9 @@ async function verifyAdminAccess() {
 
     return true;
   } catch (error) {
+    if (error?.code === "auth/required") {
+      return false;
+    }
     console.error("[Admin] Erro ao verificar administrador:", error);
 
     window.alert("Não foi possível verificar o acesso administrativo.");

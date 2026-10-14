@@ -180,6 +180,49 @@ body {
   background-color: #dce8e4;
 }
 
+.map-guest-actions {
+  position: absolute;
+  top: calc(var(--header-height) + env(safe-area-inset-top) + 52px);
+  right: 12px;
+  left: 12px;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.map-guest-actions span,
+.map-guest-actions a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: #082632;
+  color: #fff;
+  font-size: 13px;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.map-guest-actions span {
+  margin-right: auto;
+  max-width: 54%;
+  line-height: 1.25;
+}
+
+.map-guest-actions a:last-child {
+  background: #f9d923;
+  color: #082632;
+  font-weight: 700;
+}
+
+.map-guest-actions[hidden] {
+  display: none;
+}
+
 .community-map {
   width: 100%;
   height: 100%;
@@ -255,6 +298,10 @@ body {
     transform 0.2s ease,
     background-color 0.2s ease,
     filter 0.2s ease;
+}
+
+.map-filter-button[hidden] {
+  display: none !important;
 }
 
 .map-filter-button:hover {
@@ -428,9 +475,18 @@ body {
   border: 3px solid #ffffff;
   border-radius: 50%;
 
-  background-color: var(--color-green);
+  background-color: #86949a;
 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.origo-marker-status.is-online {
+  background-color: var(--color-green);
+}
+
+.origo-marker-status.is-offline,
+.origo-marker-status.is-unknown {
+  background-color: #86949a;
 }
 
 /* ==============================
@@ -548,7 +604,8 @@ body {
 }
 
 .map-sheet-type,
-.map-sheet-availability {
+.map-sheet-availability,
+.map-sheet-presence {
   min-height: 27px;
 
   padding: 5px 10px;
@@ -579,6 +636,21 @@ body {
 }
 
 .map-sheet-availability {
+  background-color: rgba(54, 174, 124, 0.15);
+  color: #187a55;
+}
+
+.map-sheet-availability[data-available="false"] {
+  background-color: #edf0f1;
+  color: #46545a;
+}
+
+.map-sheet-presence {
+  background-color: #edf0f1;
+  color: #46545a;
+}
+
+.map-sheet-presence[data-state="online"] {
   background-color: rgba(54, 174, 124, 0.15);
   color: #187a55;
 }
@@ -665,6 +737,19 @@ body {
 
   .map-title {
     font-size: 25px;
+  }
+
+  .map-guest-actions {
+    right: 8px;
+    left: 8px;
+    gap: 6px;
+  }
+
+  .map-guest-actions span,
+  .map-guest-actions a {
+    padding-right: 8px;
+    padding-left: 8px;
+    font-size: 11px;
   }
 
   .map-logo {

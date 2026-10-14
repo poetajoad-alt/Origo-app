@@ -27,11 +27,51 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
   <link rel="stylesheet" href="principal.css">
+  <link rel="stylesheet" href="principal-modern.css">
   <script type="module" src="auth-guard.js"></script>
 </head>
 
 <body>
   <div class="principal-page">
+
+    <nav class="desktop-rail" aria-label="Navegação principal">
+      <a class="desktop-rail-brand" href="principal.html" aria-label="Origo, início">
+        <img src="assets/origo-vector.png" alt="Origo">
+      </a>
+
+      <span class="desktop-rail-label">COMUNIDADE</span>
+
+      <a class="desktop-rail-link is-active" href="principal.html" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11.5L12 4L21 11.5M5.5 10.5V20H18.5V10.5M9.5 20V14H14.5V20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Início</span>
+      </a>
+      <a class="desktop-rail-link" href="#events-title">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M7 3V8M17 3V8M3.5 10H20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>Eventos</span>
+      </a>
+      <a class="desktop-rail-link" href="mapa.html">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 18L3.5 21V6L9 3L15 6L20.5 3V18L15 21L9 18Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 3V18M15 6V21" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span>Explorar mapa</span>
+      </a>
+      <a class="desktop-rail-link" href="conexoes.html" data-auth-only hidden>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="9" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="9" r="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 20C3 16.5 5.1 14.5 9 14.5C12.9 14.5 15 16.5 15.5 20M15 15C18.6 14.8 20.6 16.4 21 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>Conexões</span>
+      </a>
+      <a class="desktop-rail-link" href="#matches-title">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 8.5H17.5C19.2 8.5 20.5 9.8 20.5 11.5V16C20.5 17.4 19.4 18.5 18 18.5C17.2 18.5 16.5 18.1 16.1 17.4L15.2 16H8.8L7.9 17.4C7.5 18.1 6.8 18.5 6 18.5C4.6 18.5 3.5 17.4 3.5 16V11.5C3.5 9.8 4.8 8.5 6.5 8.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 11V14M6.5 12.5H9.5M15.5 12H15.51M18 14H18.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>Minhas partidas</span>
+      </a>
+
+      <div class="desktop-rail-spacer"></div>
+
+      <a class="desktop-rail-link desktop-rail-profile" href="meu-perfil.html" data-auth-only hidden>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 21C5.2 16.7 7.8 14.5 12 14.5C16.2 14.5 18.8 16.7 19.5 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>Meu perfil</span>
+      </a>
+      <a class="desktop-rail-link" id="desktop-login-link" href="login.html?redirect=principal.html">Entrar</a>
+      <a class="desktop-rail-link" id="desktop-register-link" href="registre-se.html?redirect=principal.html">Criar conta</a>
+      <p class="desktop-rail-caption">Sua comunidade de TCG</p>
+    </nav>
 
     <!-- Cabeçalho fixo -->
     <header class="principal-header">
@@ -66,7 +106,7 @@
             </svg>
           </button>
 
-          <div class="side-menu-user">
+          <div class="side-menu-user" id="side-menu-user" data-auth-only hidden>
 
             <div class="side-menu-avatar">
 
@@ -80,16 +120,18 @@
 
             <div class="side-menu-user-information">
 
-              <strong class="side-menu-user-name" id="side-menu-user-name">
-                Nome do Usuário
-              </strong>
+              <strong class="side-menu-user-name" id="side-menu-user-name"></strong>
 
-              <span class="side-menu-user-email" id="side-menu-user-email">
-                usuario@email.com
-              </span>
+              <span class="side-menu-user-email" id="side-menu-user-email"></span>
 
             </div>
 
+          </div>
+
+          <div class="side-menu-auth-links" id="side-menu-auth-links">
+            <p>Entre para acessar seu perfil e suas partidas.</p>
+            <a class="side-menu-auth-button" id="side-menu-login-link" href="login.html?redirect=principal.html">Entrar</a>
+            <a class="side-menu-auth-create" id="side-menu-register-link" href="registre-se.html?redirect=principal.html">Criar conta</a>
           </div>
 
         </header>
@@ -109,7 +151,7 @@
             <span>Início</span>
           </a>
 
-          <a class="side-menu-link" href="meu-perfil.html">
+          <a class="side-menu-link" href="meu-perfil.html" data-auth-only hidden>
             <svg class="side-menu-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" />
 
@@ -118,7 +160,7 @@
 
             <span>Meu Perfil</span>
           </a>
-          <a class="side-menu-link" href="admin-eventos.html" id="side-menu-admin-link" hidden>
+          <a class="side-menu-link" href="admin-eventos.html" id="side-menu-admin-link" data-auth-only hidden>
             <svg class="side-menu-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="2" />
 
@@ -150,7 +192,7 @@
             <span>Mapa</span>
           </a>
 
-          <a class="side-menu-link" href="conexoes.html">
+          <a class="side-menu-link" href="conexoes.html" data-auth-only hidden>
             <svg class="side-menu-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="9" cy="8" r="3.5" stroke="currentColor" stroke-width="2" />
 
@@ -199,7 +241,7 @@
         <!-- Rodapé do menu -->
         <footer class="side-menu-footer">
 
-          <button class="side-menu-logout-button" id="logout-button" type="button">
+          <button class="side-menu-logout-button" id="logout-button" type="button" data-auth-only hidden>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M10 5H5V19H10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 
@@ -220,6 +262,45 @@
     </div>
 
     <main class="principal-content">
+
+      <section class="home-welcome" aria-labelledby="home-welcome-title">
+        <div class="home-welcome-copy">
+          <span class="home-welcome-eyebrow">SUA COMUNIDADE TCG</span>
+          <h1 id="home-welcome-title">Encontre seu próximo encontro de jogo.</h1>
+          <p>Jogadores, partidas e eventos da comunidade Origo em um só lugar.</p>
+        </div>
+        <a class="home-welcome-action" href="mapa.html">
+          <span>Explorar comunidade</span>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <div class="home-guest-actions" id="home-guest-actions">
+          <a href="login.html?redirect=principal.html" id="home-login-link">Entrar</a>
+          <a href="registre-se.html?redirect=principal.html" id="home-register-link">Criar conta</a>
+        </div>
+      </section>
+
+      <nav class="quick-access" aria-label="Acesso rápido">
+        <a class="quick-access-card" href="mapa.html">
+          <span class="quick-access-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="6.3" stroke="currentColor" stroke-width="1.8"/><path d="M15.5 15.5L20 20M8.5 10.8H13.1M10.8 8.5V13.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          <span class="quick-access-text"><strong data-map-discovery-title>Explorar lojas e eventos</strong><small data-map-discovery-copy>Veja pontos públicos no mapa</small></span>
+          <svg class="quick-access-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="quick-access-card" href="conexoes.html">
+          <span class="quick-access-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3.3" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="9" r="2.4" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 20C3 16.5 5.1 14.5 9 14.5C12.9 14.5 15 16.5 15.5 20M15 15C18.6 14.8 20.6 16.4 21 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          <span class="quick-access-text"><strong>Minhas conexões</strong><small>Veja seus jogadores conectados</small></span>
+          <svg class="quick-access-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="quick-access-card" href="#matches-title">
+          <span class="quick-access-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6.5 8.5H17.5C19.2 8.5 20.5 9.8 20.5 11.5V16C20.5 17.4 19.4 18.5 18 18.5C17.2 18.5 16.5 18.1 16.1 17.4L15.2 16H8.8L7.9 17.4C7.5 18.1 6.8 18.5 6 18.5C4.6 18.5 3.5 17.4 3.5 16V11.5C3.5 9.8 4.8 8.5 6.5 8.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 11V14M6.5 12.5H9.5M15.5 12H15.51M18 14H18.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          <span class="quick-access-text"><strong>Minhas partidas</strong><small>Acompanhe seus convites e jogos</small></span>
+          <svg class="quick-access-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="quick-access-card" href="#events-title">
+          <span class="quick-access-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5.5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M7 3V8M17 3V8M3.5 10H20.5M8 14H11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          <span class="quick-access-text"><strong>Eventos TCG</strong><small>Descubra o que vem por aí</small></span>
+          <svg class="quick-access-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </nav>
 
       <!-- Carrossel principal -->
       <section class="banner-carousel" id="banner-carousel" aria-label="Destaques da Origo" hidden>
@@ -260,7 +341,7 @@
         <div class="section-heading map-section-heading">
 
           <h2 class="section-title" id="map-section-title">
-            Encontre Jogadores
+            Lojas e eventos no mapa
           </h2>
 
           <a class="section-link" href="mapa.html">
@@ -273,7 +354,7 @@
 
           <div class="map-preview-wrapper">
 
-            <div class="community-map-preview" id="community-map-preview" role="img" aria-label="Prévia do mapa da comunidade com jogadores, lojas e eventos próximos"></div>
+            <div class="community-map-preview" id="community-map-preview" role="img" aria-label="Prévia do mapa público com lojas e eventos"></div>
 
             <a class="map-preview-open" href="mapa.html" aria-label="Abrir o mapa completo da comunidade Origo">
               <span class="map-preview-open-label">
@@ -289,9 +370,11 @@
 
           </div>
 
+          <p class="map-preview-status" id="community-map-status" role="status" aria-live="polite">Carregando lojas e eventos…</p>
+
           <div class="map-legend" aria-label="Legenda dos marcadores">
 
-            <div class="map-legend-item">
+            <div class="map-legend-item" data-map-legend="player" hidden>
               <span class="map-legend-pin map-legend-pin-player" aria-hidden="true"></span>
 
               <span>Jogadores</span>
@@ -339,6 +422,27 @@
       <!-- As próximas seções serão inseridas aqui -->
 
     </main>
+
+    <nav class="mobile-bottom-nav" aria-label="Navegação inferior">
+      <a class="mobile-bottom-link is-active" href="principal.html" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11.5L12 4L21 11.5M5.5 10.5V20H18.5V10.5M9.5 20V14H14.5V20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Início</span>
+      </a>
+      <a class="mobile-bottom-link" href="#events-title">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M7 3V8M17 3V8M3.5 10H20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Eventos</span>
+      </a>
+      <a class="mobile-bottom-link" href="mapa.html">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 18L3.5 21V6L9 3L15 6L20.5 3V18L15 21L9 18Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 3V18M15 6V21" stroke="currentColor" stroke-width="1.8"/></svg><span>Mapa</span>
+      </a>
+      <a class="mobile-bottom-link" href="conexoes.html" data-auth-only hidden>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="9" cy="8" r="3.3" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="9" r="2.4" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 20C3 16.5 5.1 14.5 9 14.5C12.9 14.5 15 16.5 15.5 20M15 15C18.6 14.8 20.6 16.4 21 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Conexões</span>
+      </a>
+      <a class="mobile-bottom-link" href="meu-perfil.html" data-auth-only hidden>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 21C5.2 16.7 7.8 14.5 12 14.5C16.2 14.5 18.8 16.7 19.5 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Perfil</span>
+      </a>
+      <a class="mobile-bottom-link" href="login.html?redirect=principal.html" id="mobile-login-link">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 5H5V19H10M14 8L18 12L14 16M18 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Entrar</span>
+      </a>
+    </nav>
 
   </div>
 

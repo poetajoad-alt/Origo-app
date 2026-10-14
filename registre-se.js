@@ -5,6 +5,7 @@
 ================================ */
 
 import { auth, db, googleProvider } from "./firebase-config.js";
+import { getAuthDestination, buildAuthEntryUrl } from "./auth-routes.mjs";
 
 import {
   createUserWithEmailAndPassword,
@@ -43,6 +44,20 @@ const googleRegisterButton = document.getElementById("google-register-button");
 const submitButton = registerForm?.querySelector('button[type="submit"]');
 
 const registerMessage = document.getElementById("register-message");
+
+const requestedDestination = getAuthDestination(
+  window.location.search,
+  window.location.origin,
+);
+
+const loginLink = document.getElementById("login-link");
+if (loginLink) {
+  loginLink.href = buildAuthEntryUrl(
+    "login.html",
+    requestedDestination,
+    window.location.origin,
+  );
+}
 
 /* ==============================
    MENSAGENS
@@ -313,7 +328,7 @@ registerForm?.addEventListener("submit", async (event) => {
     showMessage("Conta criada com sucesso!", "success");
 
     window.setTimeout(() => {
-      window.location.href = "principal.html";
+      window.location.replace(requestedDestination);
     }, 700);
   } catch (error) {
     console.error("[Cadastro] Falha ao criar conta:", error);
@@ -367,7 +382,7 @@ googleRegisterButton?.addEventListener("click", async () => {
     );
 
     window.setTimeout(() => {
-      window.location.href = "principal.html";
+      window.location.replace(requestedDestination);
     }, 700);
   } catch (error) {
     console.error("[Cadastro Google] Falha:", error);

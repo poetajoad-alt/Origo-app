@@ -6,7 +6,7 @@
 
 import { db } from "./firebase-config.js";
 
-import { authReady } from "./auth-guard.js";
+import { requireAuth } from "./auth-guard.js";
 
 import { updateProfile } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
@@ -363,7 +363,7 @@ function fillProfile({
 
 async function loadUserProfile() {
   try {
-    const user = await authReady;
+    const user = await requireAuth();
 
     const userReference = doc(db, "usuarios", user.uid);
 
@@ -425,7 +425,7 @@ async function loadUserProfile() {
     console.error("[Meu Perfil] Não foi possível carregar o perfil:", error);
 
     try {
-      const user = await authReady;
+      const user = await requireAuth();
 
       const fallbackName = getFallbackName(user);
 
@@ -704,7 +704,7 @@ profileForm?.addEventListener("submit", async (event) => {
   setProfileLoading(true);
 
   try {
-    const user = await authReady;
+    const user = await requireAuth();
 
     const userReference = doc(db, "usuarios", user.uid);
 

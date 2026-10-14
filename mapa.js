@@ -5,7 +5,10 @@
 ================================ */
 
 import { db } from "./firebase-config.js";
-import { authReady } from "./auth-guard.js";
+import { authStateReady } from "./auth-guard.js";
+import { subscribeToPresence } from "./presence.js";
+import { applyPresenceToPoints, describePlayerStatus } from "./presence-core.mjs";
+import { createMapCollectionLoaders, normalizeCoordinates, isPublicProfileVisible, isEventCurrent, filterMapPointsForViewer } from "./map-data.mjs";
 
 import {
   addDoc,
@@ -22,6 +25,8 @@ import {
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
 const auth = getAuth();
+
+let mapCollectionLoaders;
 
 /* ==============================
    CONFIGURAÇÕES
@@ -60,6 +65,7 @@ const bottomSheetType = document.getElementById("map-sheet-type");
 const bottomSheetAvailability = document.getElementById(
   "map-sheet-availability",
 );
+const bottomSheetPresence = document.getElementById("map-sheet-presence");
 
 const bottomSheetTitle = document.getElementById("map-sheet-title");
 
@@ -114,6 +120,7 @@ let statusTimer = null;
 
 let allMapPoints = [];
 let selectedPlayerPoint = null;
+let unsubscribePresence = null;
 let currentUserId = "";
 let selectedInviteModality = "";
 let selectedInviteMessage = "";
@@ -263,13 +270,13 @@ function getMarkerConfiguration(type) {
   return configurations[type] || configurations.player;
 }
 
-function createMarkerIcon(type, isAvailable = false) {
+function createMarkerIcon(type, presenceState = "unknown") {
   const configuration = getMarkerConfiguration(type);
 
-  const availabilityStatus = isAvailable
+  const presenceStatus = type === "player"
     ? `
         <span
-          class="origo-marker-status"
+          class="origo-marker-status is-${["online", "offline"].includes(presenceState) ? presenceState : "unknown"}"
           aria-hidden="true"
         ></span>
       `
@@ -311,7 +318,7 @@ function createMarkerIcon(type, isAvailable = false) {
           ${configuration.icon}
         </svg>
 
-        ${availabilityStatus}
+        ${presenceStatus}
       </div>
     `,
 
@@ -327,17 +334,13 @@ function createMarkerIcon(type, isAvailable = false) {
 function normalizePublicProfile(documentSnapshot) {
   const data = documentSnapshot.data();
 
-  const latitude = Number(data.latitude);
+  const coordinates = normalizeCoordinates(data);
 
-  const longitude = Number(data.longitude);
-
-  if (
-    data.ativo !== true ||
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude)
-  ) {
+  if (!isPublicProfileVisible(data) || !coordinates) {
     return null;
   }
+
+  const { latitude, longitude } = coordinates;
 
   const details = {};
 
@@ -368,30 +371,23 @@ function normalizePublicProfile(documentSnapshot) {
     longitude,
 
     available: data.disponivel === true,
+    online: false,
+    presenceState: "unknown",
 
     photoURL: data.fotoURL?.trim() || "",
 
-    subtitle:
-      data.disponivel === true
-        ? "Disponível para jogar"
-        : "Jogador da comunidade",
+    subtitle: describePlayerStatus({
+      available: data.disponivel === true,
+      presenceState: "unknown",
+    }),
 
     details,
   };
 }
 
 async function loadPublicPlayers() {
-  await authReady;
-
-  const publicProfilesQuery = query(
-    collection(db, "perfisPublicos"),
-
-    where("ativo", "==", true),
-  );
-
-  const snapshot = await getDocs(publicProfilesQuery);
-
-  return snapshot.docs.map(normalizePublicProfile).filter(Boolean);
+  const docs = await mapCollectionLoaders.perfisPublicos();
+  return docs.map(normalizePublicProfile).filter(Boolean);
 }
 
 /* ==============================
@@ -441,20 +437,15 @@ function formatEventDate(value) {
 function normalizeEventDocument(documentSnapshot) {
   const data = documentSnapshot.data();
 
-  const latitude = Number(data.latitude);
-
-  const longitude = Number(data.longitude);
+  const coordinates = normalizeCoordinates(data);
 
   const eventTitle = typeof data.titulo === "string" ? data.titulo.trim() : "";
 
-  if (
-    data.ativo !== true ||
-    !eventTitle ||
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude)
-  ) {
+  if (!isEventCurrent(data) || !eventTitle || !coordinates) {
     return null;
   }
+
+  const { latitude, longitude } = coordinates;
 
   const startDate =
     typeof data.dataHoraInicio?.toDate === "function"
@@ -535,17 +526,8 @@ function normalizeEventDocument(documentSnapshot) {
 }
 
 async function loadActiveEvents() {
-  await authReady;
-
-  const activeEventsQuery = query(
-    collection(db, "eventos"),
-
-    where("ativo", "==", true),
-  );
-
-  const snapshot = await getDocs(activeEventsQuery);
-
-  return snapshot.docs.map(normalizeEventDocument).filter(Boolean);
+  const docs = await mapCollectionLoaders.eventos();
+  return docs.map(normalizeEventDocument).filter(Boolean);
 }
 /* ==============================
    LOJAS DO FIREBASE
@@ -554,19 +536,14 @@ async function loadActiveEvents() {
 function normalizeStoreDocument(documentSnapshot) {
   const data = documentSnapshot.data();
 
-  const latitude = Number(data.latitude);
-  const longitude = Number(data.longitude);
-
+  const coordinates = normalizeCoordinates(data);
   const name = typeof data.nome === "string" ? data.nome.trim() : "";
 
-  if (
-    data.ativo !== true ||
-    !name ||
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude)
-  ) {
+  if (data.ativo !== true || !name || !coordinates) {
     return null;
   }
+
+  const { latitude, longitude } = coordinates;
 
   const address = typeof data.endereco === "string" ? data.endereco.trim() : "";
 
@@ -677,17 +654,8 @@ function normalizeStoreDocument(documentSnapshot) {
 }
 
 async function loadActiveStores() {
-  await authReady;
-
-  const activeStoresQuery = query(
-    collection(db, "lojas"),
-
-    where("ativo", "==", true),
-  );
-
-  const snapshot = await getDocs(activeStoresQuery);
-
-  return snapshot.docs.map(normalizeStoreDocument).filter(Boolean);
+  const docs = await mapCollectionLoaders.lojas();
+  return docs.map(normalizeStoreDocument).filter(Boolean);
 }
 /* ==============================
    DETALHES
@@ -741,7 +709,23 @@ function openPointDetails(point) {
   }
 
   if (bottomSheetAvailability) {
-    bottomSheetAvailability.hidden = !point.available;
+    bottomSheetAvailability.hidden = point.type !== "player";
+    bottomSheetAvailability.dataset.available = String(point.available === true);
+    bottomSheetAvailability.textContent = point.available
+      ? "Disponível para jogar"
+      : "Não disponível para jogar";
+  }
+
+  if (bottomSheetPresence) {
+    const isPlayer = point.type === "player";
+    const state = point.presenceState || "unknown";
+    bottomSheetPresence.hidden = !isPlayer;
+    bottomSheetPresence.textContent = state === "online"
+      ? "Online"
+      : state === "offline"
+        ? "Offline"
+        : "Status desconhecido";
+    bottomSheetPresence.dataset.state = state;
   }
 
   bottomSheetTitle.textContent = point.name;
@@ -1418,7 +1402,7 @@ function addPointToMap(point) {
   }
 
   const marker = L.marker([point.latitude, point.longitude], {
-    icon: createMarkerIcon(point.type, point.available),
+    icon: createMarkerIcon(point.type, point.presenceState),
 
     title: point.name,
   });
@@ -1428,6 +1412,30 @@ function addPointToMap(point) {
   });
 
   marker.addTo(targetLayer);
+}
+
+function applyLivePresence(snapshot, known = true) {
+  allMapPoints = applyPresenceToPoints(allMapPoints, snapshot, known).map((point) =>
+    point.type === "player"
+      ? { ...point, subtitle: describePlayerStatus(point) }
+      : point,
+  );
+  mapLayers.player?.clearLayers();
+  allMapPoints.filter((point) => point.type === "player").forEach(addPointToMap);
+
+  if (selectedPlayerPoint) {
+    selectedPlayerPoint = allMapPoints.find((point) => point.id === selectedPlayerPoint.id) || null;
+    if (selectedPlayerPoint && bottomSheetPresence) {
+      const state = selectedPlayerPoint.presenceState;
+      bottomSheetPresence.textContent = state === "online"
+        ? "Online"
+        : state === "offline"
+          ? "Offline"
+          : "Status desconhecido";
+      bottomSheetPresence.dataset.state = state;
+      if (bottomSheetSubtitle) bottomSheetSubtitle.textContent = selectedPlayerPoint.subtitle;
+    }
+  }
 }
 
 /* ==============================
@@ -1703,16 +1711,59 @@ function initializeLeafletMap() {
 ================================ */
 
 async function loadMapPoints() {
-  showMapStatus("Carregando comunidade...", 0);
+  mapCollectionLoaders = createMapCollectionLoaders({
+    db,
+    collection,
+    getDocs,
+    query,
+    where,
+    includePlayers: false,
+    waitForAuth: () => authStateReady,
+  });
+
+  showMapStatus(
+    "Carregando lojas e eventos...",
+    0,
+  );
 
   const results = await Promise.allSettled([
-    loadPublicPlayers(),
+    Promise.resolve([]),
     loadActiveStores(),
     loadActiveEvents(),
   ]);
 
+  const authenticatedUser = await authStateReady;
+  const includePlayers = Boolean(authenticatedUser);
+  currentUserId = authenticatedUser?.uid || "";
+
+  const playerFilter = document.querySelector('[data-map-filter="player"]');
+  if (playerFilter) playerFilter.hidden = !authenticatedUser;
+  const guestActions = document.getElementById("map-guest-actions");
+  if (guestActions) guestActions.hidden = Boolean(authenticatedUser);
+  const mapHeading = document.getElementById("map-title");
+  if (mapHeading && !authenticatedUser) mapHeading.textContent = "Mapa público";
+
+  if (authenticatedUser) {
+    mapCollectionLoaders = createMapCollectionLoaders({
+      db,
+      collection,
+      getDocs,
+      query,
+      where,
+      includePlayers: true,
+      waitForAuth: () => authStateReady,
+    });
+    try {
+      results[0] = { status: "fulfilled", value: await loadPublicPlayers() };
+    } catch (reason) {
+      results[0] = { status: "rejected", reason };
+    }
+  }
+
   const publicPlayers =
-    results[0].status === "fulfilled" ? results[0].value : [];
+    results[0].status === "fulfilled"
+      ? filterMapPointsForViewer(results[0].value, currentUserId)
+      : [];
 
   const activeStores =
     results[1].status === "fulfilled" ? results[1].value : [];
@@ -1720,7 +1771,7 @@ async function loadMapPoints() {
   const activeEvents =
     results[2].status === "fulfilled" ? results[2].value : [];
 
-  if (results[0].status === "rejected") {
+  if (includePlayers && results[0].status === "rejected") {
     console.error(
       "[Mapa] Não foi possível carregar os jogadores:",
       results[0].reason,
@@ -1751,6 +1802,16 @@ async function loadMapPoints() {
 
   allMapPoints = [...publicPlayers, ...activeStores, ...activeEvents];
 
+  if (includePlayers && publicPlayers.length && !unsubscribePresence) {
+    unsubscribePresence = subscribeToPresence(
+      publicPlayers.map((point) => point.id),
+      (snapshot, known) => applyLivePresence(snapshot, known),
+      (error) => {
+        console.warn("[Mapa] Não foi possível atualizar a presença de um perfil visível.", error);
+      },
+    );
+  }
+
   allMapPoints.forEach(addPointToMap);
 
   showMapFilter(currentFilter || "all");
@@ -1769,10 +1830,34 @@ async function loadMapPoints() {
     activeEvents.length === 1 ? "" : "s"
   }`;
 
-  showMapStatus(
-    `${playerText}, ${storeText} e ${eventText} encontrados.`,
-    5000,
-  );
+  const collectionsToCheck = includePlayers ? results : results.slice(1);
+  const failures = collectionsToCheck.filter((result) => result.status === "rejected").length;
+  const pointCount = allMapPoints.length;
+  const visibleTypes = includePlayers
+    ? `${playerText}, ${storeText} e ${eventText}`
+    : `${storeText} e ${eventText}`;
+
+  if (failures === collectionsToCheck.length) {
+    showMapStatus(
+      includePlayers
+        ? "Não foi possível ler jogadores, lojas ou eventos. Tente novamente."
+        : "Não foi possível ler lojas ou eventos. Tente novamente.",
+      0,
+    );
+  } else if (failures > 0 && pointCount === 0) {
+    showMapStatus("Não foi possível ler parte das informações. Nenhum ponto disponível para exibir.", 0);
+  } else if (failures > 0) {
+    showMapStatus(`${visibleTypes} carregados. Algumas coleções não puderam ser lidas.`, 7000);
+  } else if (pointCount === 0) {
+    showMapStatus(
+      includePlayers
+        ? "Nenhum jogador, loja ou evento válido está disponível no momento."
+        : "Nenhuma loja ou evento válido está disponível no momento.",
+      0,
+    );
+  } else {
+    showMapStatus(`${visibleTypes} encontrados.`, 5000);
+  }
 }
 
 /* ==============================
@@ -1781,10 +1866,6 @@ async function loadMapPoints() {
 
 async function initializeMapPage() {
   try {
-    const authenticatedUser = await authReady;
-
-    currentUserId = authenticatedUser?.uid || auth.currentUser?.uid || "";
-
     initializeLeafletMap();
 
     initializeInterfaceEvents();
@@ -1798,3 +1879,4 @@ async function initializeMapPage() {
 }
 
 initializeMapPage();
+

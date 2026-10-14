@@ -1,0 +1,16 @@
+{
+  "name": "origo-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/map-data.test.mjs tests/auth-routes.test.mjs tests/presence.test.mjs",
+    "test:rules": "firebase emulators:exec --only firestore --project origo-public-rules-test 'node --test tests/firestore-public-rules.test.mjs'",
+    "test:database-rules": "firebase emulators:exec --only database --project demo-origo-presence-test 'node --test tests/realtime-database-rules.test.mjs'",
+    "test:all": "npm test && npm run test:rules && npm run test:database-rules"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "firebase": "^12.16.0",
+    "firebase-tools": "^14.20.0"
+  }
+}

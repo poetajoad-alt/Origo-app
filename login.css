@@ -360,3 +360,12 @@ body {
     filter: none;
   }
 }
+.login-register-prompt {
+  margin: 1.25rem 0 0;
+  text-align: center;
+}
+
+.login-register-prompt a {
+  color: #187498;
+  font-weight: 700;
+}

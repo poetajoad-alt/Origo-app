@@ -42,7 +42,7 @@
         </svg>
       </a>
 
-      <h1 class="map-title">
+      <h1 class="map-title" id="map-title">
         Mapa
       </h1>
 
@@ -51,6 +51,12 @@
       </a>
 
     </header>
+
+    <nav class="map-guest-actions" id="map-guest-actions" aria-label="Acesso à conta">
+      <span>Entre para encontrar jogadores e enviar convites.</span>
+      <a href="login.html?redirect=mapa.html">Entrar</a>
+      <a href="registre-se.html?redirect=mapa.html">Criar conta</a>
+    </nav>
 
     <!-- Área principal do mapa -->
     <section class="map-interface" aria-label="Mapa da comunidade Origo">
@@ -64,7 +70,7 @@
           Todos
         </button>
 
-        <button class="map-filter-button" type="button" data-map-filter="player" aria-pressed="false">
+        <button class="map-filter-button" type="button" data-map-filter="player" aria-pressed="false" hidden>
           <span class="filter-color filter-color-player" aria-hidden="true"></span>
 
           Jogadores
@@ -117,6 +123,9 @@
 
         <span class="map-sheet-availability" id="map-sheet-availability" hidden>
           Disponível agora
+        </span>
+        <span class="map-sheet-presence" id="map-sheet-presence" data-state="unknown" hidden>
+          Status desconhecido
         </span>
       </div>
 

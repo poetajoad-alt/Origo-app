@@ -6,7 +6,7 @@
 
 import { db } from "./firebase-config.js";
 
-import { authReady } from "./auth-guard.js";
+import { requireAuth } from "./auth-guard.js";
 
 import {
   collection,
@@ -1059,7 +1059,7 @@ async function loadConnectionsPageData() {
 
 async function initializeConnectionsPage() {
   try {
-    currentUser = await authReady;
+    currentUser = await requireAuth();
 
     await loadConnectionsPageData();
   } catch (error) {

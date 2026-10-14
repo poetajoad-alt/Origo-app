@@ -639,3 +639,12 @@ body {
     white-space: nowrap;
   }
 }
+.register-login-prompt {
+  margin: 1.25rem 0 0;
+  text-align: center;
+}
+
+.register-login-prompt a {
+  color: #187498;
+  font-weight: 700;
+}

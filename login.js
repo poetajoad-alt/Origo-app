@@ -5,6 +5,7 @@
 ================================ */
 
 import { auth, db, googleProvider } from "./firebase-config.js";
+import { getAuthDestination, buildAuthEntryUrl } from "./auth-routes.mjs";
 
 import {
   signInWithEmailAndPassword,
@@ -246,7 +247,23 @@ function getFirebaseErrorMessage(error) {
 ================================ */
 
 function redirectToPrincipal() {
-  window.location.href = "principal.html";
+  window.location.replace(
+    getAuthDestination(window.location.search, window.location.origin),
+  );
+}
+
+const requestedDestination = getAuthDestination(
+  window.location.search,
+  window.location.origin,
+);
+
+const registerLink = document.getElementById("register-link");
+if (registerLink) {
+  registerLink.href = buildAuthEntryUrl(
+    "registre-se.html",
+    requestedDestination,
+    window.location.origin,
+  );
 }
 
 /* ==============================

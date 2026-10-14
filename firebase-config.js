@@ -24,6 +24,8 @@ const firebaseConfig = {
 
   projectId: "origo-fe2da",
 
+  databaseURL: "https://origo-fe2da-default-rtdb.firebaseio.com",
+
   storageBucket: "origo-fe2da.firebasestorage.app",
 
   messagingSenderId: "372828227400",
@@ -69,4 +71,4 @@ const db = getFirestore(app);
    EXPORTAÇÕES
 ================================ */
 
-export { app, auth, db, googleProvider };
+export { app, auth, db, firebaseConfig, googleProvider };

@@ -1,11 +1,11 @@
 {
-  "id": "./",
+  "id": "./principal.html",
   "name": "Origo",
   "short_name": "Origo",
   "description": "Comunidade para jogadores de TCG encontrarem jogadores, eventos, lojas e partidas.",
   "lang": "pt-BR",
   "dir": "ltr",
-  "start_url": "./index.html",
+  "start_url": "./principal.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
