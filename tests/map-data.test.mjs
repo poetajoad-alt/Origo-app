@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { normalizeCoordinates, normalizeMapPoint, loadMapCollections } from "../map-data.mjs";
+import { normalizeCoordinates, normalizeMapPoint, loadMapCollections, filterMapPointsForViewer } from "../map-data.mjs";
 
 const doc = (id, data) => ({ id, data: () => data });
 const now = new Date("2026-10-14T12:00:00Z");
@@ -31,6 +31,25 @@ test("only opted-in active public player profiles are shown", () => {
   const point = normalizeMapPoint("player", doc("safe", { ...base, telefone: "123", email: "private@example.test" }), now);
   assert.equal("telefone" in point, false);
   assert.equal("email" in point, false);
+});
+
+test("hides only the current player's marker, preserving other players at the same coordinates", () => {
+  const points = [
+    { id: "joad", type: "player", latitude: -23.45, longitude: -46.55 },
+    { id: "heitor", type: "player", latitude: -23.45, longitude: -46.55 },
+    { id: "loja-1", type: "store", latitude: -23.45, longitude: -46.55 },
+  ];
+  assert.deepEqual(filterMapPointsForViewer(points, "joad").map((point) => point.id), ["heitor", "loja-1"]);
+  assert.deepEqual(filterMapPointsForViewer(points, "heitor").map((point) => point.id), ["joad", "loja-1"]);
+  assert.deepEqual(filterMapPointsForViewer(points, "").map((point) => point.id), ["joad", "heitor", "loja-1"]);
+  assert.equal(points.length, 3, "filtering must not change the original collection");
+});
+
+test("both the map and home preview filter out the authenticated player's marker", async () => {
+  const fullMap = await readFile(new URL("../mapa.js", import.meta.url), "utf8");
+  const preview = await readFile(new URL("../principal.js", import.meta.url), "utf8");
+  assert.match(fullMap, /filterMapPointsForViewer\(results\[0\]\.value, currentUserId\)/);
+  assert.match(preview, /filterMapPointsForViewer\(result\.points, currentUser\?\.uid\)/);
 });
 
 test("rejects ended events and inactive stores", () => {
