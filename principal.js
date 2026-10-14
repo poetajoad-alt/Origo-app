@@ -8,7 +8,7 @@ import { db } from "./firebase-config.js";
 import { authStateReady } from "./auth-guard.js";
 import { subscribeToPresence } from "./presence.js";
 import { applyPresenceToPoints } from "./presence-core.mjs";
-import { createMapCollectionLoaders, loadMapCollections } from "./map-data.mjs";
+import { createMapCollectionLoaders, loadMapCollections, filterMapPointsForViewer } from "./map-data.mjs";
 
 import {
   collection,
@@ -1696,7 +1696,8 @@ async function initializeMapPreview() {
   });
 
   const result = await loadMapCollections(loaders);
-  let previewPoints = result.points;
+  let previewPoints = filterMapPointsForViewer(result.points, currentUser?.uid);
+  const hasVisiblePoints = previewPoints.length > 0;
   const previewMarkers = new Map();
   const renderPreviewMarkers = () => {
     previewPoints.forEach((point) => {
@@ -1734,11 +1735,11 @@ async function initializeMapPreview() {
   }
 
   if (result.hasErrors) {
-    mapStatus.textContent = result.hasPoints
+    mapStatus.textContent = hasVisiblePoints
       ? "Parte das informações do mapa não pôde ser carregada."
       : "Não foi possível carregar as informações do mapa.";
     mapStatus.dataset.state = "error";
-  } else if (!result.hasPoints) {
+  } else if (!hasVisiblePoints) {
     mapStatus.textContent = includePlayers
       ? "Ainda não há jogadores, lojas ou eventos para exibir."
       : "Ainda não há lojas ou eventos para exibir.";
