@@ -6,6 +6,8 @@
 
 import { db } from "./firebase-config.js";
 import { authStateReady } from "./auth-guard.js";
+import { subscribeToPresence } from "./presence.js";
+import { applyPresenceToPoints, describePlayerStatus } from "./presence-core.mjs";
 import { createMapCollectionLoaders, normalizeCoordinates, isPublicProfileVisible, isEventCurrent } from "./map-data.mjs";
 
 import {
@@ -63,6 +65,7 @@ const bottomSheetType = document.getElementById("map-sheet-type");
 const bottomSheetAvailability = document.getElementById(
   "map-sheet-availability",
 );
+const bottomSheetPresence = document.getElementById("map-sheet-presence");
 
 const bottomSheetTitle = document.getElementById("map-sheet-title");
 
@@ -117,6 +120,7 @@ let statusTimer = null;
 
 let allMapPoints = [];
 let selectedPlayerPoint = null;
+let unsubscribePresence = null;
 let currentUserId = "";
 let selectedInviteModality = "";
 let selectedInviteMessage = "";
@@ -266,13 +270,13 @@ function getMarkerConfiguration(type) {
   return configurations[type] || configurations.player;
 }
 
-function createMarkerIcon(type, isAvailable = false) {
+function createMarkerIcon(type, presenceState = "unknown") {
   const configuration = getMarkerConfiguration(type);
 
-  const availabilityStatus = isAvailable
+  const presenceStatus = type === "player"
     ? `
         <span
-          class="origo-marker-status"
+          class="origo-marker-status is-${["online", "offline"].includes(presenceState) ? presenceState : "unknown"}"
           aria-hidden="true"
         ></span>
       `
@@ -314,7 +318,7 @@ function createMarkerIcon(type, isAvailable = false) {
           ${configuration.icon}
         </svg>
 
-        ${availabilityStatus}
+        ${presenceStatus}
       </div>
     `,
 
@@ -367,13 +371,15 @@ function normalizePublicProfile(documentSnapshot) {
     longitude,
 
     available: data.disponivel === true,
+    online: false,
+    presenceState: "unknown",
 
     photoURL: data.fotoURL?.trim() || "",
 
-    subtitle:
-      data.disponivel === true
-        ? "Disponível para jogar"
-        : "Jogador da comunidade",
+    subtitle: describePlayerStatus({
+      available: data.disponivel === true,
+      presenceState: "unknown",
+    }),
 
     details,
   };
@@ -703,7 +709,23 @@ function openPointDetails(point) {
   }
 
   if (bottomSheetAvailability) {
-    bottomSheetAvailability.hidden = !point.available;
+    bottomSheetAvailability.hidden = point.type !== "player";
+    bottomSheetAvailability.dataset.available = String(point.available === true);
+    bottomSheetAvailability.textContent = point.available
+      ? "Disponível para jogar"
+      : "Não disponível para jogar";
+  }
+
+  if (bottomSheetPresence) {
+    const isPlayer = point.type === "player";
+    const state = point.presenceState || "unknown";
+    bottomSheetPresence.hidden = !isPlayer;
+    bottomSheetPresence.textContent = state === "online"
+      ? "Online"
+      : state === "offline"
+        ? "Offline"
+        : "Status desconhecido";
+    bottomSheetPresence.dataset.state = state;
   }
 
   bottomSheetTitle.textContent = point.name;
@@ -1380,7 +1402,7 @@ function addPointToMap(point) {
   }
 
   const marker = L.marker([point.latitude, point.longitude], {
-    icon: createMarkerIcon(point.type, point.available),
+    icon: createMarkerIcon(point.type, point.presenceState),
 
     title: point.name,
   });
@@ -1390,6 +1412,30 @@ function addPointToMap(point) {
   });
 
   marker.addTo(targetLayer);
+}
+
+function applyLivePresence(snapshot, known = true) {
+  allMapPoints = applyPresenceToPoints(allMapPoints, snapshot, known).map((point) =>
+    point.type === "player"
+      ? { ...point, subtitle: describePlayerStatus(point) }
+      : point,
+  );
+  mapLayers.player?.clearLayers();
+  allMapPoints.filter((point) => point.type === "player").forEach(addPointToMap);
+
+  if (selectedPlayerPoint) {
+    selectedPlayerPoint = allMapPoints.find((point) => point.id === selectedPlayerPoint.id) || null;
+    if (selectedPlayerPoint && bottomSheetPresence) {
+      const state = selectedPlayerPoint.presenceState;
+      bottomSheetPresence.textContent = state === "online"
+        ? "Online"
+        : state === "offline"
+          ? "Offline"
+          : "Status desconhecido";
+      bottomSheetPresence.dataset.state = state;
+      if (bottomSheetSubtitle) bottomSheetSubtitle.textContent = selectedPlayerPoint.subtitle;
+    }
+  }
 }
 
 /* ==============================
@@ -1753,6 +1799,16 @@ async function loadMapPoints() {
   });
 
   allMapPoints = [...publicPlayers, ...activeStores, ...activeEvents];
+
+  if (includePlayers && !unsubscribePresence) {
+    unsubscribePresence = subscribeToPresence(
+      (snapshot, known) => applyLivePresence(snapshot, known),
+      (error) => {
+        console.warn("[Mapa] Presença indisponível; status mantidos como desconhecidos.", error);
+        applyLivePresence({}, false);
+      },
+    );
+  }
 
   allMapPoints.forEach(addPointToMap);
 

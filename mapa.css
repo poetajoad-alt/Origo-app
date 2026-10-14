@@ -475,9 +475,18 @@ body {
   border: 3px solid #ffffff;
   border-radius: 50%;
 
-  background-color: var(--color-green);
+  background-color: #86949a;
 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.origo-marker-status.is-online {
+  background-color: var(--color-green);
+}
+
+.origo-marker-status.is-offline,
+.origo-marker-status.is-unknown {
+  background-color: #86949a;
 }
 
 /* ==============================
@@ -595,7 +604,8 @@ body {
 }
 
 .map-sheet-type,
-.map-sheet-availability {
+.map-sheet-availability,
+.map-sheet-presence {
   min-height: 27px;
 
   padding: 5px 10px;
@@ -626,6 +636,21 @@ body {
 }
 
 .map-sheet-availability {
+  background-color: rgba(54, 174, 124, 0.15);
+  color: #187a55;
+}
+
+.map-sheet-availability[data-available="false"] {
+  background-color: #edf0f1;
+  color: #46545a;
+}
+
+.map-sheet-presence {
+  background-color: #edf0f1;
+  color: #46545a;
+}
+
+.map-sheet-presence[data-state="online"] {
   background-color: rgba(54, 174, 124, 0.15);
   color: #187a55;
 }

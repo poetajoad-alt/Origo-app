@@ -8,6 +8,7 @@ import {
   buildAuthEntryUrl,
   sanitizeAuthDestination,
 } from "./auth-routes.mjs";
+import { startPresence, stopPresence } from "./presence.js";
 
 const PUBLIC_PAGES = new Set([
   "index.html",
@@ -48,14 +49,12 @@ if (!isPublicPage) {
 }
 
 let stateResolved = false;
-let unsubscribeAuth = () => {};
 
 const authStateReady = new Promise((resolve) => {
   const finish = (user, error = null) => {
     if (stateResolved) return;
     stateResolved = true;
     window.clearTimeout(timeoutId);
-    unsubscribeAuth();
 
     if (!isPublicPage) {
       document.documentElement.classList.remove("auth-checking");
@@ -79,10 +78,17 @@ const authStateReady = new Promise((resolve) => {
     finish(null, new Error("A verificação da sessão excedeu o tempo limite."));
   }, AUTH_CHECK_TIMEOUT);
 
-  unsubscribeAuth = onAuthStateChanged(
+  onAuthStateChanged(
     auth,
-    (user) => finish(user || null),
-    (error) => finish(null, error),
+    (user) => {
+      if (user) startPresence(user);
+      else void stopPresence();
+      finish(user || null);
+    },
+    (error) => {
+      void stopPresence();
+      finish(null, error);
+    },
   );
 });
 

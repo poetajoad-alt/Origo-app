@@ -6,6 +6,8 @@
 
 import { db } from "./firebase-config.js";
 import { authStateReady } from "./auth-guard.js";
+import { subscribeToPresence } from "./presence.js";
+import { applyPresenceToPoints } from "./presence-core.mjs";
 import { createMapCollectionLoaders, loadMapCollections } from "./map-data.mjs";
 
 import {
@@ -22,6 +24,7 @@ import {
 ================================ */
 
 let banners = [];
+let unsubscribePreviewPresence = null;
 
 /* ==============================
    ELEMENTOS DA PÁGINA
@@ -1559,13 +1562,13 @@ function getMarkerConfiguration(type) {
   return markerConfigurations[type] || markerConfigurations.player;
 }
 
-function createCommunityMarkerIcon(type, isAvailable = false) {
+function createCommunityMarkerIcon(type, presenceState = "unknown") {
   const configuration = getMarkerConfiguration(type);
 
-  const statusElement = isAvailable
+  const statusElement = type === "player"
     ? `
         <span
-          class="origo-marker-status"
+          class="origo-marker-status is-${["online", "offline"].includes(presenceState) ? presenceState : "unknown"}"
           aria-hidden="true"
         ></span>
       `
@@ -1693,15 +1696,39 @@ async function initializeMapPreview() {
   });
 
   const result = await loadMapCollections(loaders);
-  result.points.forEach((point) => {
-    const markerIcon = createCommunityMarkerIcon(point.type, point.available);
+  let previewPoints = result.points;
+  const previewMarkers = new Map();
+  const renderPreviewMarkers = () => {
+    previewPoints.forEach((point) => {
+      const markerIcon = createCommunityMarkerIcon(point.type, point.presenceState);
+      const existingMarker = previewMarkers.get(point.id);
+      if (existingMarker) {
+        existingMarker.setIcon(markerIcon);
+        return;
+      }
+      const marker = L.marker([point.latitude, point.longitude], {
+        icon: markerIcon,
+        interactive: false,
+        keyboard: false,
+      }).addTo(previewMap);
+      previewMarkers.set(point.id, marker);
+    });
+  };
+  renderPreviewMarkers();
 
-    L.marker([point.latitude, point.longitude], {
-      icon: markerIcon,
-      interactive: false,
-      keyboard: false,
-    }).addTo(previewMap);
-  });
+  if (includePlayers && !unsubscribePreviewPresence) {
+    unsubscribePreviewPresence = subscribeToPresence(
+      (snapshot, known) => {
+        previewPoints = applyPresenceToPoints(previewPoints, snapshot, known);
+        renderPreviewMarkers();
+      },
+      (error) => {
+        console.warn("[Prévia do mapa] Presença indisponível; status mantidos como desconhecidos.", error);
+        previewPoints = applyPresenceToPoints(previewPoints, {}, false);
+        renderPreviewMarkers();
+      },
+    );
+  }
 
   if (result.hasErrors) {
     mapStatus.textContent = result.hasPoints

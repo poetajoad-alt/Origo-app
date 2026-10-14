@@ -1386,9 +1386,18 @@ body.menu-open {
   border: 3px solid #ffffff;
   border-radius: 50%;
 
-  background-color: #36ae7c;
+  background-color: #86949a;
 
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
+}
+
+.origo-marker-status.is-online {
+  background-color: #36ae7c;
+}
+
+.origo-marker-status.is-offline,
+.origo-marker-status.is-unknown {
+  background-color: #86949a;
 }
 /* ==============================
    CELULARES MENORES

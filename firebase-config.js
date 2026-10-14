@@ -69,4 +69,4 @@ const db = getFirestore(app);
    EXPORTAÇÕES
 ================================ */
 
-export { app, auth, db, googleProvider };
+export { app, auth, db, firebaseConfig, googleProvider };

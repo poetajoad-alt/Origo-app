@@ -8,6 +8,7 @@ import { auth, db } from "./firebase-config.js";
 
 import { authStateReady } from "./auth-guard.js";
 import { buildAuthEntryUrl } from "./auth-routes.mjs";
+import { stopPresence } from "./presence.js";
 
 import { signOut } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
@@ -277,6 +278,7 @@ function initializeLogout() {
     logoutButton.textContent = "Saindo...";
 
     try {
+      await stopPresence();
       await signOut(auth);
 
       console.log("[Principal Auth] Logout realizado com sucesso.");

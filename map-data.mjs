@@ -91,6 +91,8 @@ export function normalizeMapPoint(type, snapshot, now = new Date()) {
       type === "store" ? data.nome.trim() : data.titulo.trim(),
     ...coordinates,
     available: type === "player" && data.disponivel === true,
+    online: false,
+    presenceState: type === "player" ? "unknown" : null,
   };
 }
 
