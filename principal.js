@@ -6,6 +6,7 @@
 
 import { db } from "./firebase-config.js";
 import { authReady } from "./auth-guard.js";
+import { createMapCollectionLoaders, loadMapCollections } from "./map-data.mjs";
 
 import {
   collection,
@@ -1474,37 +1475,6 @@ const MAP_ATTRIBUTION =
 
 const HOME_MAP_CENTER = [-23.455, -46.535];
 
-const communityMapPoints = [
-  {
-    type: "player",
-    name: "Jogador disponível",
-    latitude: -23.4525,
-    longitude: -46.5305,
-    available: true,
-  },
-  {
-    type: "player",
-    name: "Jogador próximo",
-    latitude: -23.4585,
-    longitude: -46.538,
-    available: false,
-  },
-  {
-    type: "store",
-    name: "Loja parceira",
-    latitude: -23.454,
-    longitude: -46.542,
-    available: false,
-  },
-  {
-    type: "event",
-    name: "Evento de TCG",
-    latitude: -23.4605,
-    longitude: -46.5315,
-    available: false,
-  },
-];
-
 function getMarkerConfiguration(type) {
   const markerConfigurations = {
     player: {
@@ -1654,7 +1624,7 @@ function createCommunityMarkerIcon(type, isAvailable = false) {
   });
 }
 
-function initializeMapPreview() {
+async function initializeMapPreview() {
   const mapElement = document.getElementById("community-map-preview");
 
   if (!mapElement) {
@@ -1687,7 +1657,19 @@ function initializeMapPreview() {
     attribution: MAP_ATTRIBUTION,
   }).addTo(previewMap);
 
-  communityMapPoints.forEach((point) => {
+  const mapStatus = document.getElementById("community-map-status");
+
+  if (!mapStatus) return;
+
+  mapStatus.textContent = "Carregando jogadores, lojas e eventos…";
+  mapStatus.dataset.state = "loading";
+
+  const loaders = createMapCollectionLoaders({
+    db, collection, getDocs, query, where, waitForAuth: () => authReady,
+  });
+
+  const result = await loadMapCollections(loaders);
+  result.points.forEach((point) => {
     const markerIcon = createCommunityMarkerIcon(point.type, point.available);
 
     L.marker([point.latitude, point.longitude], {
@@ -1696,6 +1678,19 @@ function initializeMapPreview() {
       keyboard: false,
     }).addTo(previewMap);
   });
+
+  if (result.hasErrors) {
+    mapStatus.textContent = result.hasPoints
+      ? "Parte das informações do mapa não pôde ser carregada."
+      : "Não foi possível carregar as informações do mapa.";
+    mapStatus.dataset.state = "error";
+  } else if (!result.hasPoints) {
+    mapStatus.textContent = "Ainda não há jogadores, lojas ou eventos para exibir.";
+    mapStatus.dataset.state = "empty";
+  } else {
+    mapStatus.textContent = "";
+    mapStatus.dataset.state = "loaded";
+  }
 
   window.requestAnimationFrame(() => {
     previewMap.invalidateSize();
@@ -1713,7 +1708,8 @@ async function initializePrincipalPage() {
 
   loadMyMatches();
 
-  initializeMapPreview();
+  await initializeMapPreview();
 }
 
 initializePrincipalPage();
+

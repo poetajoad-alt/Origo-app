@@ -6,6 +6,7 @@
 
 import { db } from "./firebase-config.js";
 import { authReady } from "./auth-guard.js";
+import { createMapCollectionLoaders, normalizeCoordinates, isPublicProfileVisible, isEventCurrent } from "./map-data.mjs";
 
 import {
   addDoc,
@@ -22,6 +23,10 @@ import {
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
 const auth = getAuth();
+
+const mapCollectionLoaders = createMapCollectionLoaders({
+  db, collection, getDocs, query, where, waitForAuth: () => authReady,
+});
 
 /* ==============================
    CONFIGURAÇÕES
@@ -327,17 +332,13 @@ function createMarkerIcon(type, isAvailable = false) {
 function normalizePublicProfile(documentSnapshot) {
   const data = documentSnapshot.data();
 
-  const latitude = Number(data.latitude);
+  const coordinates = normalizeCoordinates(data);
 
-  const longitude = Number(data.longitude);
-
-  if (
-    data.ativo !== true ||
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude)
-  ) {
+  if (!isPublicProfileVisible(data) || !coordinates) {
     return null;
   }
+
+  const { latitude, longitude } = coordinates;
 
   const details = {};
 
@@ -381,17 +382,8 @@ function normalizePublicProfile(documentSnapshot) {
 }
 
 async function loadPublicPlayers() {
-  await authReady;
-
-  const publicProfilesQuery = query(
-    collection(db, "perfisPublicos"),
-
-    where("ativo", "==", true),
-  );
-
-  const snapshot = await getDocs(publicProfilesQuery);
-
-  return snapshot.docs.map(normalizePublicProfile).filter(Boolean);
+  const docs = await mapCollectionLoaders.perfisPublicos();
+  return docs.map(normalizePublicProfile).filter(Boolean);
 }
 
 /* ==============================
@@ -441,20 +433,15 @@ function formatEventDate(value) {
 function normalizeEventDocument(documentSnapshot) {
   const data = documentSnapshot.data();
 
-  const latitude = Number(data.latitude);
-
-  const longitude = Number(data.longitude);
+  const coordinates = normalizeCoordinates(data);
 
   const eventTitle = typeof data.titulo === "string" ? data.titulo.trim() : "";
 
-  if (
-    data.ativo !== true ||
-    !eventTitle ||
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude)
-  ) {
+  if (!isEventCurrent(data) || !eventTitle || !coordinates) {
     return null;
   }
+
+  const { latitude, longitude } = coordinates;
 
   const startDate =
     typeof data.dataHoraInicio?.toDate === "function"
@@ -535,17 +522,8 @@ function normalizeEventDocument(documentSnapshot) {
 }
 
 async function loadActiveEvents() {
-  await authReady;
-
-  const activeEventsQuery = query(
-    collection(db, "eventos"),
-
-    where("ativo", "==", true),
-  );
-
-  const snapshot = await getDocs(activeEventsQuery);
-
-  return snapshot.docs.map(normalizeEventDocument).filter(Boolean);
+  const docs = await mapCollectionLoaders.eventos();
+  return docs.map(normalizeEventDocument).filter(Boolean);
 }
 /* ==============================
    LOJAS DO FIREBASE
@@ -554,19 +532,14 @@ async function loadActiveEvents() {
 function normalizeStoreDocument(documentSnapshot) {
   const data = documentSnapshot.data();
 
-  const latitude = Number(data.latitude);
-  const longitude = Number(data.longitude);
-
+  const coordinates = normalizeCoordinates(data);
   const name = typeof data.nome === "string" ? data.nome.trim() : "";
 
-  if (
-    data.ativo !== true ||
-    !name ||
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude)
-  ) {
+  if (data.ativo !== true || !name || !coordinates) {
     return null;
   }
+
+  const { latitude, longitude } = coordinates;
 
   const address = typeof data.endereco === "string" ? data.endereco.trim() : "";
 
@@ -677,17 +650,8 @@ function normalizeStoreDocument(documentSnapshot) {
 }
 
 async function loadActiveStores() {
-  await authReady;
-
-  const activeStoresQuery = query(
-    collection(db, "lojas"),
-
-    where("ativo", "==", true),
-  );
-
-  const snapshot = await getDocs(activeStoresQuery);
-
-  return snapshot.docs.map(normalizeStoreDocument).filter(Boolean);
+  const docs = await mapCollectionLoaders.lojas();
+  return docs.map(normalizeStoreDocument).filter(Boolean);
 }
 /* ==============================
    DETALHES
@@ -1769,10 +1733,20 @@ async function loadMapPoints() {
     activeEvents.length === 1 ? "" : "s"
   }`;
 
-  showMapStatus(
-    `${playerText}, ${storeText} e ${eventText} encontrados.`,
-    5000,
-  );
+  const failures = results.filter((result) => result.status === "rejected").length;
+  const pointCount = allMapPoints.length;
+
+  if (failures === results.length) {
+    showMapStatus("Não foi possível ler jogadores, lojas ou eventos. Tente novamente.", 0);
+  } else if (failures > 0 && pointCount === 0) {
+    showMapStatus("Não foi possível ler parte das coleções. Nenhum ponto disponível para exibir.", 0);
+  } else if (failures > 0) {
+    showMapStatus(`${playerText}, ${storeText} e ${eventText} carregados. Algumas coleções não puderam ser lidas.`, 7000);
+  } else if (pointCount === 0) {
+    showMapStatus("Nenhum jogador, loja ou evento válido está disponível no momento.", 0);
+  } else {
+    showMapStatus(`${playerText}, ${storeText} e ${eventText} encontrados.`, 5000);
+  }
 }
 
 /* ==============================
@@ -1798,3 +1772,4 @@ async function initializeMapPage() {
 }
 
 initializeMapPage();
+

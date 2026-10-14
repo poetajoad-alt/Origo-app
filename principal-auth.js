@@ -182,7 +182,6 @@ async function loadSideMenuUser() {
 
     const userData = userSnapshot.exists() ? userSnapshot.data() : {};
 
-    console.log("[Principal Auth] Dados encontrados:", userData);
 
     const name =
       typeof userData.nome === "string" && userData.nome.trim()
@@ -288,3 +287,4 @@ if (document.readyState === "loading") {
 } else {
   initializePrincipalAuth();
 }
+

@@ -532,6 +532,18 @@ body {
   min-height: 220px;
 }
 
+.map-preview-status {
+  min-height: 1.25rem;
+  margin: 0.75rem 1rem 0;
+  color: var(--origo-text-muted, #52616a);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.map-preview-status[data-state="error"] {
+  color: #a53b3b;
+}
+
 .map-legend {
   padding: 13px 18px;
   display: flex;
@@ -897,3 +909,4 @@ body {
     font-size: 10px;
   }
 }
+
