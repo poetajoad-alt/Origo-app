@@ -6,7 +6,7 @@
 
 import { db } from "./firebase-config.js";
 
-import { authReady } from "./auth-guard.js";
+import { requireAuth } from "./auth-guard.js";
 
 import {
   doc,
@@ -307,7 +307,7 @@ async function loadOnlineMatch() {
 
 async function initializeOnlineMatch() {
   try {
-    currentUser = await authReady;
+    currentUser = await requireAuth();
 
     console.log("[Partida Online] UID autenticado:", currentUser?.uid);
 

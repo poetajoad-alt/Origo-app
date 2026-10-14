@@ -5,7 +5,7 @@
 ================================ */
 
 import { db } from "./firebase-config.js";
-import { authReady } from "./auth-guard.js";
+import { authStateReady } from "./auth-guard.js";
 import { createMapCollectionLoaders, normalizeCoordinates, isPublicProfileVisible, isEventCurrent } from "./map-data.mjs";
 
 import {
@@ -24,9 +24,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-aut
 
 const auth = getAuth();
 
-const mapCollectionLoaders = createMapCollectionLoaders({
-  db, collection, getDocs, query, where, waitForAuth: () => authReady,
-});
+let mapCollectionLoaders;
 
 /* ==============================
    CONFIGURAÇÕES
@@ -1667,13 +1665,54 @@ function initializeLeafletMap() {
 ================================ */
 
 async function loadMapPoints() {
-  showMapStatus("Carregando comunidade...", 0);
+  mapCollectionLoaders = createMapCollectionLoaders({
+    db,
+    collection,
+    getDocs,
+    query,
+    where,
+    includePlayers: false,
+    waitForAuth: () => authStateReady,
+  });
+
+  showMapStatus(
+    "Carregando lojas e eventos...",
+    0,
+  );
 
   const results = await Promise.allSettled([
-    loadPublicPlayers(),
+    Promise.resolve([]),
     loadActiveStores(),
     loadActiveEvents(),
   ]);
+
+  const authenticatedUser = await authStateReady;
+  const includePlayers = Boolean(authenticatedUser);
+  currentUserId = authenticatedUser?.uid || "";
+
+  const playerFilter = document.querySelector('[data-map-filter="player"]');
+  if (playerFilter) playerFilter.hidden = !authenticatedUser;
+  const guestActions = document.getElementById("map-guest-actions");
+  if (guestActions) guestActions.hidden = Boolean(authenticatedUser);
+  const mapHeading = document.getElementById("map-title");
+  if (mapHeading && !authenticatedUser) mapHeading.textContent = "Mapa público";
+
+  if (authenticatedUser) {
+    mapCollectionLoaders = createMapCollectionLoaders({
+      db,
+      collection,
+      getDocs,
+      query,
+      where,
+      includePlayers: true,
+      waitForAuth: () => authStateReady,
+    });
+    try {
+      results[0] = { status: "fulfilled", value: await loadPublicPlayers() };
+    } catch (reason) {
+      results[0] = { status: "rejected", reason };
+    }
+  }
 
   const publicPlayers =
     results[0].status === "fulfilled" ? results[0].value : [];
@@ -1684,7 +1723,7 @@ async function loadMapPoints() {
   const activeEvents =
     results[2].status === "fulfilled" ? results[2].value : [];
 
-  if (results[0].status === "rejected") {
+  if (includePlayers && results[0].status === "rejected") {
     console.error(
       "[Mapa] Não foi possível carregar os jogadores:",
       results[0].reason,
@@ -1733,19 +1772,33 @@ async function loadMapPoints() {
     activeEvents.length === 1 ? "" : "s"
   }`;
 
-  const failures = results.filter((result) => result.status === "rejected").length;
+  const collectionsToCheck = includePlayers ? results : results.slice(1);
+  const failures = collectionsToCheck.filter((result) => result.status === "rejected").length;
   const pointCount = allMapPoints.length;
+  const visibleTypes = includePlayers
+    ? `${playerText}, ${storeText} e ${eventText}`
+    : `${storeText} e ${eventText}`;
 
-  if (failures === results.length) {
-    showMapStatus("Não foi possível ler jogadores, lojas ou eventos. Tente novamente.", 0);
+  if (failures === collectionsToCheck.length) {
+    showMapStatus(
+      includePlayers
+        ? "Não foi possível ler jogadores, lojas ou eventos. Tente novamente."
+        : "Não foi possível ler lojas ou eventos. Tente novamente.",
+      0,
+    );
   } else if (failures > 0 && pointCount === 0) {
-    showMapStatus("Não foi possível ler parte das coleções. Nenhum ponto disponível para exibir.", 0);
+    showMapStatus("Não foi possível ler parte das informações. Nenhum ponto disponível para exibir.", 0);
   } else if (failures > 0) {
-    showMapStatus(`${playerText}, ${storeText} e ${eventText} carregados. Algumas coleções não puderam ser lidas.`, 7000);
+    showMapStatus(`${visibleTypes} carregados. Algumas coleções não puderam ser lidas.`, 7000);
   } else if (pointCount === 0) {
-    showMapStatus("Nenhum jogador, loja ou evento válido está disponível no momento.", 0);
+    showMapStatus(
+      includePlayers
+        ? "Nenhum jogador, loja ou evento válido está disponível no momento."
+        : "Nenhuma loja ou evento válido está disponível no momento.",
+      0,
+    );
   } else {
-    showMapStatus(`${playerText}, ${storeText} e ${eventText} encontrados.`, 5000);
+    showMapStatus(`${visibleTypes} encontrados.`, 5000);
   }
 }
 
@@ -1755,10 +1808,6 @@ async function loadMapPoints() {
 
 async function initializeMapPage() {
   try {
-    const authenticatedUser = await authReady;
-
-    currentUserId = authenticatedUser?.uid || auth.currentUser?.uid || "";
-
     initializeLeafletMap();
 
     initializeInterfaceEvents();

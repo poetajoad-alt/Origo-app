@@ -1,177 +1,105 @@
 "use strict";
 
-/* ==============================
-   FIREBASE
-================================ */
-
 import { auth } from "./firebase-config.js";
+import {
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+import {
+  buildAuthEntryUrl,
+  sanitizeAuthDestination,
+} from "./auth-routes.mjs";
 
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-
-/* ==============================
-   CONFIGURAÇÕES
-================================ */
-
-const LOGIN_PAGE = "login.html";
-
-const AUTH_CHECK_TIMEOUT = 15000;
-
-/* ==============================
-   OCULTAR PÁGINA DURANTE A
-   VERIFICAÇÃO DA SESSÃO
-================================ */
-
-const authGuardStyle = document.createElement("style");
-
-authGuardStyle.textContent = `
-  html.auth-checking body {
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  html.auth-ready body {
-    visibility: visible;
-  }
-`;
-
-document.head.appendChild(authGuardStyle);
-
-document.documentElement.classList.add("auth-checking");
-
-/* ==============================
-   PÁGINA ATUAL
-================================ */
+const PUBLIC_PAGES = new Set([
+  "index.html",
+  "principal.html",
+  "mapa.html",
+  "login.html",
+  "registre-se.html",
+  "offline.html",
+]);
+const AUTH_CHECK_TIMEOUT = 12000;
 
 function getCurrentPageAddress() {
-  const fileName =
-    window.location.pathname.split("/").pop() || "principal.html";
-
-  return fileName + window.location.search + window.location.hash;
+  const fileName = window.location.pathname.split("/").filter(Boolean).at(-1) || "principal.html";
+  return sanitizeAuthDestination(
+    `${fileName}${window.location.search}${window.location.hash}`,
+    window.location.origin,
+  );
 }
-
-/* ==============================
-   REDIRECIONAR PARA O LOGIN
-================================ */
 
 function redirectToLogin(reason = "unauthenticated") {
-  const parameters = new URLSearchParams({
-    redirect: getCurrentPageAddress(),
-    reason,
-  });
-
-  window.location.replace(`${LOGIN_PAGE}?${parameters.toString()}`);
+  const destination = getCurrentPageAddress();
+  const loginUrl = buildAuthEntryUrl("login.html", destination, window.location.origin);
+  const separator = loginUrl.includes("?") ? "&" : "?";
+  window.location.replace(`${loginUrl}${separator}reason=${encodeURIComponent(reason)}`);
 }
 
-/* ==============================
-   LIBERAR A PÁGINA
-================================ */
+const currentPage = window.location.pathname.split("/").filter(Boolean).at(-1) || "principal.html";
+const isPublicPage = PUBLIC_PAGES.has(currentPage);
 
-function releaseProtectedPage() {
-  document.documentElement.classList.remove("auth-checking");
-
-  document.documentElement.classList.add("auth-ready");
+if (!isPublicPage) {
+  const authGuardStyle = document.createElement("style");
+  authGuardStyle.textContent = `
+    html.auth-checking body { visibility: hidden; pointer-events: none; }
+    html.auth-ready body { visibility: visible; }
+  `;
+  document.head.appendChild(authGuardStyle);
+  document.documentElement.classList.add("auth-checking");
 }
 
-/* ==============================
-   PROMESSA DE AUTENTICAÇÃO
-================================ */
+let stateResolved = false;
+let unsubscribeAuth = () => {};
 
-/*
-  Os próximos arquivos poderão importar
-  authReady para obter o usuário somente
-  depois que o Firebase confirmar a sessão.
+const authStateReady = new Promise((resolve) => {
+  const finish = (user, error = null) => {
+    if (stateResolved) return;
+    stateResolved = true;
+    window.clearTimeout(timeoutId);
+    unsubscribeAuth();
 
-  Exemplo:
-
-  import {
-    authReady,
-  } from "./auth-guard.js";
-
-  const user = await authReady;
-*/
-
-const authReady = new Promise((resolve, reject) => {
-  let verificationFinished = false;
-
-  const timeoutId = window.setTimeout(() => {
-    if (verificationFinished) {
-      return;
+    if (!isPublicPage) {
+      document.documentElement.classList.remove("auth-checking");
+      document.documentElement.classList.add("auth-ready");
     }
 
-    verificationFinished = true;
+    if (error) {
+      window.dispatchEvent(new CustomEvent("origo:auth-state-error", { detail: { error } }));
+    }
+    window.dispatchEvent(new CustomEvent("origo:auth-ready", {
+      detail: { user: user || null, uid: user?.uid || null },
+    }));
 
-    console.error(
-      "[Auth Guard] O Firebase demorou muito para verificar a sessão.",
-    );
+    if (!isPublicPage && !user) {
+      redirectToLogin(error ? "authentication-error" : "unauthenticated");
+    }
+    resolve(user || null);
+  };
 
-    redirectToLogin("timeout");
+  const timeoutId = window.setTimeout(() => {
+    finish(null, new Error("A verificação da sessão excedeu o tempo limite."));
   }, AUTH_CHECK_TIMEOUT);
 
-  /* ==============================
-       OBSERVAR ESTADO DA SESSÃO
-    ================================ */
-
-  const unsubscribe = onAuthStateChanged(
+  unsubscribeAuth = onAuthStateChanged(
     auth,
-
-    (user) => {
-      if (verificationFinished) {
-        return;
-      }
-
-      verificationFinished = true;
-
-      window.clearTimeout(timeoutId);
-
-      unsubscribe();
-
-      if (!user) {
-        console.warn("[Auth Guard] Acesso bloqueado: usuário não autenticado.");
-
-        redirectToLogin("unauthenticated");
-
-        return;
-      }
-
-      releaseProtectedPage();
-
-      /*
-            Evento disponível para outros
-            scripts da mesma página.
-          */
-
-      window.dispatchEvent(
-        new CustomEvent("origo:auth-ready", {
-          detail: {
-            user,
-            uid: user.uid,
-          },
-        }),
-      );
-
-      resolve(user);
-    },
-
-    (error) => {
-      if (verificationFinished) {
-        return;
-      }
-
-      verificationFinished = true;
-
-      window.clearTimeout(timeoutId);
-
-      console.error("[Auth Guard] Erro ao verificar a autenticação:", error);
-
-      reject(error);
-
-      redirectToLogin("authentication-error");
-    },
+    (user) => finish(user || null),
+    (error) => finish(null, error),
   );
 });
 
-/* ==============================
-   EXPORTAÇÃO
-================================ */
+async function requireAuth(destination = getCurrentPageAddress()) {
+  const user = await authStateReady;
+  if (user) return user;
 
-export { authReady };
+  const safeDestination = sanitizeAuthDestination(destination, window.location.origin);
+  if (isPublicPage) {
+    window.location.replace(
+      buildAuthEntryUrl("login.html", safeDestination, window.location.origin),
+    );
+  }
+  const error = new Error("Esta funcionalidade exige uma conta conectada.");
+  error.code = "auth/required";
+  throw error;
+}
+
+// Private pages import requireAuth; authStateReady is safe on public pages.
+export { authStateReady, requireAuth };

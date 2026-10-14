@@ -5,7 +5,7 @@
 ================================ */
 
 import { db } from "./firebase-config.js";
-import { authReady } from "./auth-guard.js";
+import { authStateReady } from "./auth-guard.js";
 import { createMapCollectionLoaders, loadMapCollections } from "./map-data.mjs";
 
 import {
@@ -16,10 +16,6 @@ import {
   query,
   where,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
-
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-
-const auth = getAuth();
 
 /* ==============================
    BANNERS DO FIRESTORE
@@ -124,8 +120,6 @@ async function loadBanners() {
   }
 
   try {
-    await authReady;
-
     const snapshot = await getDocs(collection(db, "banners"));
 
     banners = snapshot.docs
@@ -1095,8 +1089,6 @@ async function loadEvents() {
   `;
 
   try {
-    await authReady;
-
     const eventsQuery = query(
       collection(db, "eventos"),
 
@@ -1379,15 +1371,15 @@ async function loadMyMatches() {
   }
 
   try {
-    await authReady;
-
-    const currentUser = auth.currentUser;
+    const currentUser = await authStateReady;
 
     if (!currentUser) {
       matchesTrack.innerHTML = `
-        <p class="events-loading">
-          Entre na sua conta para visualizar suas partidas.
-        </p>
+        <div class="matches-guest-prompt">
+          <p>Entre na sua conta para acompanhar convites e partidas.</p>
+          <a class="section-link" href="login.html?redirect=principal.html%23matches-title">Entrar</a>
+          <a class="section-link" href="registre-se.html?redirect=principal.html%23matches-title">Criar conta</a>
+        </div>
       `;
 
       return;
@@ -1661,11 +1653,43 @@ async function initializeMapPreview() {
 
   if (!mapStatus) return;
 
-  mapStatus.textContent = "Carregando jogadores, lojas e eventos…";
+  const currentUser = await authStateReady;
+  const includePlayers = Boolean(currentUser);
+  const mapSectionTitle = document.getElementById("map-section-title");
+  const playerLegend = document.querySelector("[data-map-legend='player']");
+  const mapPreview = document.getElementById("community-map-preview");
+
+  if (!includePlayers) {
+    if (mapSectionTitle) mapSectionTitle.textContent = "Lojas e eventos no mapa";
+    if (playerLegend) playerLegend.hidden = true;
+    mapPreview?.setAttribute("aria-label", "Prévia do mapa público com lojas e eventos");
+    const discoveryTitle = document.querySelector("[data-map-discovery-title]");
+    const discoveryCopy = document.querySelector("[data-map-discovery-copy]");
+    if (discoveryTitle) discoveryTitle.textContent = "Explorar lojas e eventos";
+    if (discoveryCopy) discoveryCopy.textContent = "Veja pontos públicos no mapa";
+  } else {
+    if (mapSectionTitle) mapSectionTitle.textContent = "Encontre jogadores e pontos da comunidade";
+    if (playerLegend) playerLegend.hidden = false;
+    mapPreview?.setAttribute("aria-label", "Prévia do mapa da comunidade com jogadores, lojas e eventos próximos");
+    const discoveryTitle = document.querySelector("[data-map-discovery-title]");
+    const discoveryCopy = document.querySelector("[data-map-discovery-copy]");
+    if (discoveryTitle) discoveryTitle.textContent = "Encontrar jogadores";
+    if (discoveryCopy) discoveryCopy.textContent = "Explore o mapa da comunidade";
+  }
+
+  mapStatus.textContent = includePlayers
+    ? "Carregando jogadores, lojas e eventos…"
+    : "Carregando lojas e eventos…";
   mapStatus.dataset.state = "loading";
 
   const loaders = createMapCollectionLoaders({
-    db, collection, getDocs, query, where, waitForAuth: () => authReady,
+    db,
+    collection,
+    getDocs,
+    query,
+    where,
+    includePlayers,
+    waitForAuth: () => authStateReady,
   });
 
   const result = await loadMapCollections(loaders);
@@ -1685,7 +1709,9 @@ async function initializeMapPreview() {
       : "Não foi possível carregar as informações do mapa.";
     mapStatus.dataset.state = "error";
   } else if (!result.hasPoints) {
-    mapStatus.textContent = "Ainda não há jogadores, lojas ou eventos para exibir.";
+    mapStatus.textContent = includePlayers
+      ? "Ainda não há jogadores, lojas ou eventos para exibir."
+      : "Ainda não há lojas ou eventos para exibir.";
     mapStatus.dataset.state = "empty";
   } else {
     mapStatus.textContent = "";
@@ -1701,14 +1727,11 @@ async function initializeMapPreview() {
    INICIALIZAÇÃO
 ================================ */
 
-async function initializePrincipalPage() {
-  await loadBanners();
-
-  await loadEvents();
-
+function initializePrincipalPage() {
+  loadBanners();
+  loadEvents();
   loadMyMatches();
-
-  await initializeMapPreview();
+  initializeMapPreview();
 }
 
 initializePrincipalPage();

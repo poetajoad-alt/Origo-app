@@ -95,7 +95,65 @@ test("query loaders target only the three public map collections with active rec
   assert.ok(calls.every(({ filters }) => filters[0][0] === "ativo" && filters[0][1] === "==" && filters[0][2] === true));
 });
 
+test("guest map loaders never request player profiles", async () => {
+  const calls = [];
+  const loaders = (await import("../map-data.mjs")).createMapCollectionLoaders({
+    db: {},
+    collection: (_db, name) => ({ name }),
+    where: (...args) => args,
+    query: (ref, ...filters) => ({ ref, filters }),
+    getDocs: async (q) => { calls.push(q); return { docs: [] }; },
+    includePlayers: false,
+  });
+  await Promise.all(Object.values(loaders).map((load) => load()));
+  assert.deepEqual(calls.map(({ ref }) => ref.name).sort(), ["eventos", "lojas"]);
+  assert.equal("perfisPublicos" in loaders, false);
+});
+
+test("public preview omits the private player collection without reporting a read error", async () => {
+  const loaders = {
+    lojas: async () => [],
+    eventos: async () => [],
+  };
+  const result = await loadMapCollections(loaders, now);
+  assert.deepEqual(result.omittedCollections, ["perfisPublicos"]);
+  assert.equal(result.hasErrors, false);
+  assert.equal(result.allFailed, false);
+  assert.equal(result.collections.perfisPublicos, undefined);
+});
+
 test("principal auth does not log user identifiers or private document contents", async () => {
   const source = await readFile(new URL("../principal-auth.js", import.meta.url), "utf8");
   assert.doesNotMatch(source, /console\.log\([^\n]*(?:user\.uid|userData)/);
+});
+
+test("public home uses optional auth and shows an explicit guest invitation to sign in", async () => {
+  const html = await readFile(new URL("../principal.html", import.meta.url), "utf8");
+  const source = await readFile(new URL("../principal.js", import.meta.url), "utf8");
+  const authGuard = await readFile(new URL("../auth-guard.js", import.meta.url), "utf8");
+  assert.match(authGuard, /authStateReady/);
+  assert.match(authGuard, /requireAuth/);
+  assert.match(source, /authStateReady/);
+  assert.doesNotMatch(source, /authReady/);
+  assert.match(source, /Entre na sua conta para acompanhar convites e partidas/);
+  assert.match(html, /id="home-guest-actions"/);
+  assert.match(html, /id="mobile-login-link"/);
+});
+
+test("PWA and root entry point resolve to the public home", async () => {
+  const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
+  const worker = await readFile(new URL("../service-worker.js", import.meta.url), "utf8");
+  assert.match(index, /principal\.html/);
+  assert.equal(manifest.start_url, "./principal.html");
+  assert.match(worker, /origo-pwa-v5/);
+});
+
+test("login and registration preserve only same-origin approved destinations", async () => {
+  const routes = await import("../auth-routes.mjs");
+  assert.equal(routes.sanitizeAuthDestination("meu-perfil.html", "https://origo.test"), "meu-perfil.html");
+  assert.equal(routes.sanitizeAuthDestination("principal.html#matches-title", "https://origo.test"), "principal.html#matches-title");
+  assert.equal(routes.sanitizeAuthDestination("https://evil.test/steal", "https://origo.test"), "principal.html");
+  assert.equal(routes.sanitizeAuthDestination("//evil.test/steal", "https://origo.test"), "principal.html");
+  assert.equal(routes.sanitizeAuthDestination("https://origo.test/evil.html", "https://origo.test"), "principal.html");
 });

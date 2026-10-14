@@ -1,8 +1,20 @@
 const MAP_COLLECTIONS = ["perfisPublicos", "lojas", "eventos"];
 
-export function createMapCollectionLoaders({ db, collection, getDocs, query, where, waitForAuth = () => Promise.resolve() }) {
-  return Object.fromEntries(MAP_COLLECTIONS.map((name) => [name, async () => {
-    await waitForAuth();
+export function createMapCollectionLoaders({
+  db,
+  collection,
+  getDocs,
+  query,
+  where,
+  waitForAuth = () => Promise.resolve(),
+  includePlayers = true,
+}) {
+  const collectionNames = includePlayers
+    ? MAP_COLLECTIONS
+    : MAP_COLLECTIONS.filter((name) => name !== "perfisPublicos");
+
+  return Object.fromEntries(collectionNames.map((name) => [name, async () => {
+    if (name === "perfisPublicos") await waitForAuth();
     const result = await getDocs(query(collection(db, name), where("ativo", "==", true)));
     return result.docs;
   }]));
@@ -83,7 +95,8 @@ export function normalizeMapPoint(type, snapshot, now = new Date()) {
 }
 
 export async function loadMapCollections(loaders, now = new Date()) {
-  const entries = await Promise.all(MAP_COLLECTIONS.map(async (collectionName) => {
+  const collectionNames = MAP_COLLECTIONS.filter((name) => typeof loaders[name] === "function");
+  const entries = await Promise.all(collectionNames.map(async (collectionName) => {
     const type = collectionName === "perfisPublicos" ? "player" : collectionName === "lojas" ? "store" : "event";
     try {
       const docs = await loaders[collectionName]();
@@ -96,13 +109,14 @@ export async function loadMapCollections(loaders, now = new Date()) {
     }
   }));
   const collections = Object.fromEntries(entries);
-  const points = MAP_COLLECTIONS.flatMap((name) => collections[name].points);
-  const errors = MAP_COLLECTIONS.filter((name) => collections[name].status === "error");
+  const points = collectionNames.flatMap((name) => collections[name].points);
+  const errors = collectionNames.filter((name) => collections[name].status === "error");
   return {
     collections,
+    omittedCollections: MAP_COLLECTIONS.filter((name) => !collectionNames.includes(name)),
     points,
     hasErrors: errors.length > 0,
-    allFailed: errors.length === MAP_COLLECTIONS.length,
+    allFailed: collectionNames.length > 0 && errors.length === collectionNames.length,
     hasPoints: points.length > 0,
   };
 }

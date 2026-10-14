@@ -1,0 +1,1187 @@
+// Proposta para revisão; usada pelo Emulator Suite, não publicar sem autorização.
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ==============================
+       FUNÇÕES GERAIS
+    ================================ */
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn()
+        && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(
+          /databases/$(database)/documents/admins/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/admins/$(request.auth.uid)
+        ).data.ativo == true;
+    }
+
+
+    /* ==============================
+       PERFIL PÚBLICO
+    ================================ */
+
+    function publicProfileIsValid(data, userId) {
+      return data.keys().hasOnly([
+        'uid',
+        'tipo',
+        'nome',
+        'fotoURL',
+        'tcgFavorito',
+        'personagemFavorito',
+        'deckUtilizado',
+        'cidade',
+        'disponivel',
+        'latitude',
+        'longitude',
+        'ativo',
+        'criadoEm',
+        'atualizadoEm'
+      ])
+
+      && data.keys().hasAll([
+        'uid',
+        'tipo',
+        'nome',
+        'fotoURL',
+        'tcgFavorito',
+        'personagemFavorito',
+        'deckUtilizado',
+        'cidade',
+        'disponivel',
+        'latitude',
+        'longitude',
+        'ativo',
+        'criadoEm',
+        'atualizadoEm'
+      ])
+
+      && data.uid == userId
+      && data.tipo == 'player'
+
+      && data.nome is string
+      && data.nome.size() >= 2
+      && data.nome.size() <= 80
+
+      && data.fotoURL is string
+      && data.fotoURL.size() <= 500
+
+      && data.tcgFavorito is string
+      && data.tcgFavorito.size() <= 80
+
+      && data.personagemFavorito is string
+      && data.personagemFavorito.size() <= 100
+
+      && data.deckUtilizado is string
+      && data.deckUtilizado.size() <= 120
+
+      && data.cidade is string
+      && data.cidade.size() >= 2
+      && data.cidade.size() <= 80
+
+      && data.disponivel is bool
+      && data.ativo is bool
+
+      && data.latitude is number
+      && data.latitude >= -90
+      && data.latitude <= 90
+
+      && data.longitude is number
+      && data.longitude >= -180
+      && data.longitude <= 180
+
+      && data.criadoEm is timestamp
+      && data.atualizadoEm is timestamp;
+    }
+
+
+    /* ==============================
+       VALIDAÇÃO DOS EVENTOS
+    ================================ */
+
+    function eventIsValid(data) {
+      return data.keys().hasOnly([
+        'titulo',
+        'categoria',
+        'imagem',
+        'local',
+        'cidade',
+        'descricao',
+        'formato',
+        'latitude',
+        'longitude',
+        'dataHoraInicio',
+        'dataHoraFim',
+        'ativo',
+        'criadoEm',
+        'atualizadoEm'
+      ])
+
+      && data.keys().hasAll([
+        'titulo',
+        'categoria',
+        'imagem',
+        'local',
+        'cidade',
+        'descricao',
+        'formato',
+        'latitude',
+        'longitude',
+        'dataHoraInicio',
+        'dataHoraFim',
+        'ativo',
+        'criadoEm',
+        'atualizadoEm'
+      ])
+
+      && data.titulo is string
+      && data.titulo.size() >= 2
+      && data.titulo.size() <= 120
+
+      && data.categoria is string
+      && data.categoria.size() >= 2
+      && data.categoria.size() <= 50
+
+      && data.imagem is string
+      && data.imagem.size() >= 5
+      && data.imagem.size() <= 250
+
+      && data.local is string
+      && data.local.size() >= 2
+      && data.local.size() <= 120
+
+      && data.cidade is string
+      && data.cidade.size() >= 2
+      && data.cidade.size() <= 100
+
+      && data.descricao is string
+      && data.descricao.size() >= 2
+      && data.descricao.size() <= 1500
+
+      && data.formato is string
+      && data.formato.size() >= 2
+      && data.formato.size() <= 100
+
+      && data.latitude is number
+      && data.latitude >= -90
+      && data.latitude <= 90
+
+      && data.longitude is number
+      && data.longitude >= -180
+      && data.longitude <= 180
+
+      && data.dataHoraInicio is timestamp
+      && data.dataHoraFim is timestamp
+      && data.dataHoraFim >= data.dataHoraInicio
+
+      && data.ativo is bool
+
+      && data.criadoEm is timestamp
+      && data.atualizadoEm is timestamp;
+    }
+
+/* ==============================
+   VALIDAÇÃO DAS LOJAS
+================================ */
+
+function storeIsValid(data) {
+  return data.keys().hasOnly([
+    'nome',
+    'descricao',
+    'imagem',
+    'endereco',
+    'bairro',
+    'cidade',
+    'estado',
+    'cep',
+    'latitude',
+    'longitude',
+    'telefone',
+    'whatsapp',
+    'instagram',
+    'site',
+    'tcgs',
+    'possuiMesas',
+    'realizaEventos',
+    'parceira',
+    'ativo',
+    'criadoEm',
+    'atualizadoEm'
+  ])
+
+  && data.keys().hasAll([
+    'nome',
+    'descricao',
+    'imagem',
+    'endereco',
+    'bairro',
+    'cidade',
+    'estado',
+    'cep',
+    'latitude',
+    'longitude',
+    'telefone',
+    'whatsapp',
+    'instagram',
+    'site',
+    'tcgs',
+    'possuiMesas',
+    'realizaEventos',
+    'parceira',
+    'ativo',
+    'criadoEm',
+    'atualizadoEm'
+  ])
+
+  && data.nome is string
+  && data.nome.size() >= 2
+  && data.nome.size() <= 120
+
+  && data.descricao is string
+  && data.descricao.size() >= 2
+  && data.descricao.size() <= 1000
+
+  && data.imagem is string
+  && data.imagem.size() >= 5
+  && data.imagem.size() <= 250
+
+  && data.endereco is string
+  && data.endereco.size() >= 3
+  && data.endereco.size() <= 180
+
+  && data.bairro is string
+  && data.bairro.size() <= 100
+
+  && data.cidade is string
+  && data.cidade.size() >= 2
+  && data.cidade.size() <= 100
+
+  && data.estado is string
+  && data.estado.matches(
+    '^[A-Z]{2}$'
+  )
+
+  && data.cep is string
+  && data.cep.size() <= 9
+
+  && (
+    data.cep == ''
+
+    ||
+
+    data.cep.matches(
+      '^[0-9]{5}-[0-9]{3}$'
+    )
+  )
+
+  && data.latitude is number
+  && data.latitude >= -90
+  && data.latitude <= 90
+
+  && data.longitude is number
+  && data.longitude >= -180
+  && data.longitude <= 180
+
+  && data.telefone is string
+  && data.telefone.size() <= 20
+
+  && data.whatsapp is string
+  && data.whatsapp.size() <= 20
+
+  && data.instagram is string
+  && data.instagram.size() <= 100
+
+  && data.site is string
+  && data.site.size() <= 220
+
+  && (
+    data.site == ''
+
+    ||
+
+    data.site.matches(
+      '^https?://.+'
+    )
+  )
+
+  && data.tcgs is list
+  && data.tcgs.size() >= 1
+  && data.tcgs.size() <= 4
+
+  && data.tcgs.hasOnly([
+    'Pokémon',
+    'Magic',
+    'Yu-Gi-Oh!',
+    'Lorcana'
+  ])
+
+  && data.possuiMesas is bool
+  && data.realizaEventos is bool
+  && data.parceira is bool
+  && data.ativo is bool
+
+  && data.criadoEm is timestamp
+  && data.atualizadoEm is timestamp;
+}
+/* ==============================
+   VALIDAÇÃO DOS BANNERS
+================================ */
+
+function bannerIsValid(data) {
+  return data.keys().hasOnly([
+    'imagem',
+    'alt',
+    'link',
+    'criadoEm',
+    'atualizadoEm'
+  ])
+
+  && data.keys().hasAll([
+    'imagem',
+    'alt',
+    'link',
+    'criadoEm',
+    'atualizadoEm'
+  ])
+
+  && data.imagem is string
+  && data.imagem.size() >= 10
+  && data.imagem.size() <= 250
+
+  && data.imagem.matches(
+    'assets/banner-[0-9]+[.](jpg|jpeg|png|webp|avif)'
+  )
+
+  && data.alt is string
+  && data.alt.size() >= 2
+  && data.alt.size() <= 180
+
+  && data.link is string
+  && data.link.size() >= 1
+  && data.link.size() <= 500
+
+  && (
+    data.link.matches('https?://.+')
+    ||
+    data.link.matches(
+      '([.]/)?[a-zA-Z0-9_-]+[.]html([?#].*)?'
+    )
+  )
+
+  && data.criadoEm is timestamp
+  && data.atualizadoEm is timestamp;
+}
+    /* ==============================
+       VALIDAÇÃO DOS CONVITES
+    ================================ */
+
+    function legacyInviteMessageIsAllowed(message) {
+      return message == 'Vamos jogar?'
+        || message == 'Está disponível hoje?'
+        || message == 'Qual TCG você joga?'
+        || message == 'Qual formato você prefere?'
+        || message == 'Quer marcar uma partida?'
+        || message == 'Podemos trocar WhatsApp?';
+    }
+
+    function inviteMessageIsAllowed(message, modalidade) {
+      return (
+        modalidade == 'presencial'
+        && (
+          message == 'Vamos jogar presencialmente?'
+          || message == 'Está disponível hoje?'
+          || message == 'Qual TCG você joga?'
+          || message == 'Qual formato você prefere?'
+          || message == 'Quer marcar uma partida presencial?'
+        )
+      )
+
+      ||
+
+      (
+        modalidade == 'online'
+        && (
+          message == 'Vamos jogar online agora?'
+          || message == 'Quer marcar uma partida online?'
+          || message == 'Qual TCG você quer jogar?'
+          || message == 'Qual formato você prefere?'
+          || message == 'Você consegue jogar por vídeo?'
+        )
+      );
+    }
+
+    function inviteHasAnyMatchDetails(data) {
+      return data.keys().hasAny([
+        'tcg',
+        'formato',
+        'dataHoraProposta',
+        'local'
+      ]);
+    }
+
+    function inviteHasAllMatchDetails(data) {
+      return data.keys().hasAll([
+        'tcg',
+        'formato',
+        'dataHoraProposta',
+        'local'
+      ]);
+    }
+
+    function inviteMatchDetailsAreValid(data) {
+      return inviteHasAllMatchDetails(data)
+
+      && data.tcg is string
+
+      && (
+        data.tcg == 'Pokémon'
+        || data.tcg == 'Yu-Gi-Oh!'
+        || data.tcg == 'Magic'
+        || data.tcg == 'Lorcana'
+      )
+
+      && data.formato is string
+      && data.formato.size() >= 2
+      && data.formato.size() <= 60
+
+      && data.dataHoraProposta is timestamp
+
+      && data.local is string
+      && data.local.size() <= 120
+
+      && (
+        (
+          data.modalidade == 'presencial'
+          && data.local.size() >= 2
+        )
+
+        ||
+
+        (
+          data.modalidade == 'online'
+          && data.local == ''
+        )
+      );
+    }
+
+    function inviteIsValid(data) {
+      return signedIn()
+
+      && data.keys().hasOnly([
+        'remetenteId',
+        'destinatarioId',
+        'tipo',
+        'modalidade',
+        'tcg',
+        'formato',
+        'dataHoraProposta',
+        'local',
+        'mensagem',
+        'status',
+        'criadoEm',
+        'atualizadoEm'
+      ])
+
+      && data.keys().hasAll([
+        'remetenteId',
+        'destinatarioId',
+        'tipo',
+        'mensagem',
+        'status',
+        'criadoEm',
+        'atualizadoEm'
+      ])
+
+      && data.remetenteId is string
+      && data.remetenteId == request.auth.uid
+
+      && data.destinatarioId is string
+      && data.destinatarioId.size() > 0
+      && data.destinatarioId != request.auth.uid
+
+      && data.tipo == 'jogar'
+      && data.mensagem is string
+
+      && (
+        (
+          !data.keys().hasAny([
+            'modalidade',
+            'tcg',
+            'formato',
+            'dataHoraProposta',
+            'local'
+          ])
+
+          && legacyInviteMessageIsAllowed(
+            data.mensagem
+          )
+        )
+
+        ||
+
+        (
+          data.keys().hasAny([
+            'modalidade'
+          ])
+
+          && data.modalidade is string
+
+          && (
+            data.modalidade == 'presencial'
+            || data.modalidade == 'online'
+          )
+
+          && inviteMessageIsAllowed(
+            data.mensagem,
+            data.modalidade
+          )
+
+          && (
+            !inviteHasAnyMatchDetails(data)
+
+            ||
+
+            inviteMatchDetailsAreValid(data)
+          )
+        )
+      )
+
+      && data.status == 'pendente'
+
+      && data.criadoEm is timestamp
+      && data.criadoEm == request.time
+
+      && data.atualizadoEm is timestamp
+      && data.atualizadoEm == request.time
+
+      && exists(
+        /databases/$(database)/documents/perfisPublicos/$(data.remetenteId)
+      )
+
+      && exists(
+        /databases/$(database)/documents/perfisPublicos/$(data.destinatarioId)
+      )
+
+      && get(
+        /databases/$(database)/documents/perfisPublicos/$(data.destinatarioId)
+      ).data.ativo == true;
+    }
+
+
+    /* ==============================
+       VALIDAÇÃO DAS CONEXÕES
+    ================================ */
+
+    function connectionMatchesAcceptedInvite(data) {
+      return exists(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      )
+
+      && getAfter(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      ).data.status == 'aceito'
+
+      && getAfter(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      ).data.destinatarioId == request.auth.uid
+
+      && (
+        (
+          data.participantes[0] == getAfter(
+            /databases/$(database)/documents/convites/$(data.conviteId)
+          ).data.remetenteId
+
+          && data.participantes[1] == getAfter(
+            /databases/$(database)/documents/convites/$(data.conviteId)
+          ).data.destinatarioId
+        )
+
+        ||
+
+        (
+          data.participantes[1] == getAfter(
+            /databases/$(database)/documents/convites/$(data.conviteId)
+          ).data.remetenteId
+
+          && data.participantes[0] == getAfter(
+            /databases/$(database)/documents/convites/$(data.conviteId)
+          ).data.destinatarioId
+        )
+      );
+    }
+
+    function connectionIsValid(data) {
+      return signedIn()
+
+      && data.keys().hasOnly([
+        'participantes',
+        'conviteId',
+        'ativo',
+        'atualizadoEm'
+      ])
+
+      && data.keys().hasAll([
+        'participantes',
+        'conviteId',
+        'ativo',
+        'atualizadoEm'
+      ])
+
+      && data.participantes is list
+      && data.participantes.size() == 2
+
+      && data.participantes[0] is string
+      && data.participantes[1] is string
+
+      && data.participantes[0] != data.participantes[1]
+
+      && request.auth.uid in data.participantes
+
+      && data.conviteId is string
+      && data.conviteId.size() > 0
+
+      && data.ativo == true
+
+      && data.atualizadoEm is timestamp
+      && data.atualizadoEm == request.time
+
+      && connectionMatchesAcceptedInvite(data);
+    }
+
+
+    /* ==============================
+       CLASSIFICAÇÃO DAS CONEXÕES
+    ================================ */
+
+    function connectionClassificationIsValid(data) {
+      return data.keys().hasOnly([
+        'tipo',
+        'atualizadoEm'
+      ])
+
+      && data.keys().hasAll([
+        'tipo',
+        'atualizadoEm'
+      ])
+
+      && (
+        data.tipo == 'amigo'
+        || data.tipo == 'rival'
+      )
+
+      && data.atualizadoEm is timestamp
+      && data.atualizadoEm == request.time;
+    }
+
+
+    /* ==============================
+       VALIDAÇÃO DAS PARTIDAS
+    ================================ */
+
+    function matchReferencesAcceptedInvite(data, matchId) {
+      return exists(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      )
+
+      && data.conviteId == matchId
+
+      && getAfter(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      ).data.keys().hasAll([
+        'remetenteId',
+        'destinatarioId',
+        'modalidade',
+        'tcg',
+        'formato',
+        'dataHoraProposta',
+        'local',
+        'status'
+      ])
+
+      && getAfter(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      ).data.status == 'aceito'
+
+      && getAfter(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      ).data.destinatarioId == request.auth.uid
+
+      && getAfter(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      ).data.modalidade == data.modalidade
+
+      && getAfter(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      ).data.tcg == data.tcg
+
+      && getAfter(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      ).data.formato == data.formato
+
+      && getAfter(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      ).data.dataHoraProposta == data.dataHora
+
+      && getAfter(
+        /databases/$(database)/documents/convites/$(data.conviteId)
+      ).data.local == data.local
+
+      && (
+        (
+          data.participantes[0] == getAfter(
+            /databases/$(database)/documents/convites/$(data.conviteId)
+          ).data.remetenteId
+
+          && data.participantes[1] == getAfter(
+            /databases/$(database)/documents/convites/$(data.conviteId)
+          ).data.destinatarioId
+        )
+
+        ||
+
+        (
+          data.participantes[1] == getAfter(
+            /databases/$(database)/documents/convites/$(data.conviteId)
+          ).data.remetenteId
+
+          && data.participantes[0] == getAfter(
+            /databases/$(database)/documents/convites/$(data.conviteId)
+          ).data.destinatarioId
+        )
+      );
+    }
+
+    function matchIsValid(data, matchId) {
+      return signedIn()
+
+      && data.keys().hasOnly([
+        'participantes',
+        'conviteId',
+        'modalidade',
+        'tcg',
+        'formato',
+        'dataHora',
+        'local',
+        'salaId',
+        'status',
+        'criadoEm',
+        'atualizadoEm'
+      ])
+
+      && data.keys().hasAll([
+        'participantes',
+        'conviteId',
+        'modalidade',
+        'tcg',
+        'formato',
+        'dataHora',
+        'local',
+        'salaId',
+        'status',
+        'criadoEm',
+        'atualizadoEm'
+      ])
+
+      && data.participantes is list
+      && data.participantes.size() == 2
+
+      && data.participantes[0] is string
+      && data.participantes[1] is string
+
+      && data.participantes[0] != data.participantes[1]
+
+      && request.auth.uid in data.participantes
+
+      && data.conviteId is string
+      && data.conviteId == matchId
+
+      && data.modalidade is string
+
+      && (
+        data.modalidade == 'presencial'
+        || data.modalidade == 'online'
+      )
+
+      && data.tcg is string
+
+      && (
+        data.tcg == 'Pokémon'
+        || data.tcg == 'Yu-Gi-Oh!'
+        || data.tcg == 'Magic'
+        || data.tcg == 'Lorcana'
+      )
+
+      && data.formato is string
+      && data.formato.size() >= 2
+      && data.formato.size() <= 60
+
+      && data.dataHora is timestamp
+
+      && data.local is string
+      && data.local.size() <= 120
+
+      && data.salaId is string
+      && data.salaId.size() <= 100
+
+      && (
+        (
+          data.modalidade == 'presencial'
+
+          && data.local.size() >= 2
+
+          && data.salaId == ''
+        )
+
+        ||
+
+        (
+          data.modalidade == 'online'
+
+          && data.local == ''
+
+          && data.salaId.matches(
+            '^origo-[0-9a-f]{32}$'
+          )
+        )
+      )
+
+      && data.status == 'confirmada'
+
+      && data.criadoEm is timestamp
+      && data.criadoEm == request.time
+
+      && data.atualizadoEm is timestamp
+      && data.atualizadoEm == request.time
+
+      && matchReferencesAcceptedInvite(
+        data,
+        matchId
+      );
+    }
+
+
+    /* ==============================
+       DADOS PRIVADOS DO USUÁRIO
+    ================================ */
+
+    match /usuarios/{userId} {
+      allow create:
+        if isOwner(userId);
+
+      allow read, update, delete:
+        if isOwner(userId);
+    }
+
+
+    /* ==============================
+       PERFIS PÚBLICOS
+    ================================ */
+
+    match /perfisPublicos/{userId} {
+      allow read:
+        if signedIn();
+
+      allow create, update:
+        if isOwner(userId)
+        && publicProfileIsValid(
+          request.resource.data,
+          userId
+        );
+
+      allow delete:
+        if isOwner(userId);
+    }
+
+
+    /* ==============================
+       ADMINISTRADORES
+    ================================ */
+
+    match /admins/{userId} {
+      allow read:
+        if isOwner(userId);
+
+      allow create, update, delete:
+        if false;
+    }
+
+
+    /* ==============================
+       EVENTOS
+    ================================ */
+
+    match /eventos/{eventId} {
+      allow read:
+        if isAdmin()
+        || resource.data.ativo == true;
+
+      allow create, update:
+        if isAdmin()
+        && eventIsValid(
+          request.resource.data
+        );
+
+      allow delete:
+        if isAdmin();
+    }
+    /* ==============================
+   BANNERS
+================================ */
+
+match /banners/{bannerId} {
+
+  // A coleção contém apenas banners publicados para divulgação pública.
+  allow read: if true;
+
+  /*
+    Somente administradores podem
+    cadastrar banners.
+  */
+
+  allow create:
+    if isAdmin()
+
+    && bannerIsValid(
+      request.resource.data
+    )
+
+    && request.resource.data.criadoEm
+      == request.time
+
+    && request.resource.data.atualizadoEm
+      == request.time;
+
+  /*
+    Somente administradores podem editar.
+
+    A data de criação não pode ser alterada.
+  */
+
+  allow update:
+    if isAdmin()
+
+    && bannerIsValid(
+      request.resource.data
+    )
+
+    && request.resource.data.criadoEm
+      == resource.data.criadoEm
+
+    && request.resource.data.atualizadoEm
+      == request.time
+
+    && request.resource.data
+      .diff(resource.data)
+      .affectedKeys()
+      .hasOnly([
+        'imagem',
+        'alt',
+        'link',
+        'atualizadoEm'
+      ]);
+
+  /*
+    Somente administradores podem excluir.
+  */
+
+  allow delete:
+    if isAdmin();
+}
+/* ==============================
+   LOJAS
+================================ */
+
+match /lojas/{storeId} {
+  allow read:
+    if isAdmin()
+    || resource.data.ativo == true;
+
+  allow create:
+    if isAdmin()
+
+    && storeIsValid(
+      request.resource.data
+    )
+
+    && request.resource.data.criadoEm
+      == request.time
+
+    && request.resource.data.atualizadoEm
+      == request.time;
+
+  allow update:
+    if isAdmin()
+
+    && storeIsValid(
+      request.resource.data
+    )
+
+    && request.resource.data.criadoEm
+      == resource.data.criadoEm
+
+    && request.resource.data.atualizadoEm
+      == request.time;
+
+  allow delete:
+    if isAdmin();
+}
+
+    /* ==============================
+       CONVITES
+    ================================ */
+
+    match /convites/{conviteId} {
+      allow create:
+        if inviteIsValid(
+          request.resource.data
+        );
+
+      allow read:
+        if signedIn()
+        && (
+          resource.data.remetenteId == request.auth.uid
+          || resource.data.destinatarioId == request.auth.uid
+        );
+
+      allow update:
+        if signedIn()
+
+        && resource.data.destinatarioId == request.auth.uid
+
+        && resource.data.status == 'pendente'
+
+        && (
+          request.resource.data.status == 'aceito'
+          || request.resource.data.status == 'recusado'
+        )
+
+        && request.resource.data.atualizadoEm == request.time
+
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            'status',
+            'atualizadoEm'
+          ]);
+
+      allow delete:
+        if false;
+    }
+
+
+    /* ==============================
+       CONEXÕES
+    ================================ */
+
+    match /conexoes/{connectionId} {
+      allow read:
+        if signedIn()
+        && request.auth.uid in resource.data.participantes;
+
+      allow create:
+        if connectionIsValid(
+          request.resource.data
+        );
+
+      allow update:
+        if connectionIsValid(
+          request.resource.data
+        )
+
+        && request.resource.data.participantes
+          == resource.data.participantes
+
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            'conviteId',
+            'ativo',
+            'atualizadoEm'
+          ]);
+
+      allow delete:
+        if false;
+
+
+      /* ==============================
+         CLASSIFICAÇÃO PESSOAL
+      ================================ */
+
+      match /classificacoes/{userId} {
+        allow read:
+          if signedIn()
+
+          && userId == request.auth.uid
+
+          && request.auth.uid in get(
+            /databases/$(database)/documents/conexoes/$(connectionId)
+          ).data.participantes;
+
+        allow create, update:
+          if signedIn()
+
+          && userId == request.auth.uid
+
+          && request.auth.uid in get(
+            /databases/$(database)/documents/conexoes/$(connectionId)
+          ).data.participantes
+
+          && connectionClassificationIsValid(
+            request.resource.data
+          );
+
+        allow delete:
+          if signedIn()
+
+          && userId == request.auth.uid
+
+          && request.auth.uid in get(
+            /databases/$(database)/documents/conexoes/$(connectionId)
+          ).data.participantes;
+      }
+    }
+
+
+    /* ==============================
+       PARTIDAS
+    ================================ */
+
+    match /partidas/{matchId} {
+      allow read:
+        if signedIn()
+        && request.auth.uid in resource.data.participantes;
+
+      allow create:
+        if matchIsValid(
+          request.resource.data,
+          matchId
+        );
+
+      allow update, delete:
+        if false;
+    }
+
+
+    /* ==============================
+       BLOQUEIO PADRÃO
+    ================================ */
+
+    match /{document=**} {
+      allow read, write:
+        if false;
+    }
+  }
+}

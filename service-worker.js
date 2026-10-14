@@ -4,7 +4,7 @@
    VERSÃO DO CACHE
 ================================ */
 
-const CACHE_NAME = "origo-pwa-v4";
+const CACHE_NAME = "origo-pwa-v5";
 
 const OFFLINE_PAGE = "./offline.html";
 
@@ -15,6 +15,9 @@ const OFFLINE_PAGE = "./offline.html";
 const CORE_ASSETS = [
   "./index.html",
   "./index.css",
+  "./principal.html",
+  "./principal.css",
+  "./principal-modern.css",
   "./offline.html",
 
   "./assets/logo-origo-index.png",

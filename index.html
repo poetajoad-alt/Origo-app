@@ -21,43 +21,18 @@
 
   <meta name="apple-mobile-web-app-title" content="Origo">
 
-  <title>Origo | Início</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link href="https://fonts.googleapis.com/css2?family=Arsenal:wght@700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="index.css">
+  <title>Origo | Comunidade TCG</title>
 </head>
 
 <body>
-  <main class="index-page">
-
-    <section class="index-brand" aria-labelledby="index-title">
-
-      <img class="index-logo" src="assets/logo-origo-index.png" alt="Logo da Origo">
-
-      <h1 id="index-title" class="index-title">
-        Where Every Journey Begins
-      </h1>
-
-    </section>
-
-    <nav class="index-actions" aria-label="Acesso à conta">
-
-      <a class="index-button" href="login.html">
-        Login
-      </a>
-
-      <a class="index-button" href="registre-se.html">
-        Registre-se
-      </a>
-
-    </nav>
-
+  <main>
+    <h1>Origo</h1>
+    <p>Abrindo a comunidade...</p>
+    <a href="./principal.html">Continuar para a página principal</a>
   </main>
-  <script src="./pwa-register.js" defer></script>
+  <script>
+    window.location.replace(new URL("./principal.html", window.location.href));
+  </script>
 </body>
 
 </html>
