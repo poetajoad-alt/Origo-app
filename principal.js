@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 10110)
-Total output lines: 1768
-
 "use strict";
 
 /* ==============================
@@ -900,7 +897,26 @@ function createEventCardHTML(event, index) {
               </p>
 
               <time
-                ${dateTimeAttribute ? `datetime="${date…110 tokens truncated…  >
+                ${dateTimeAttribute ? `datetime="${dateTimeAttribute}"` : ""}
+              >
+                ${escapeHTML(summaryDate)}
+              </time>
+            </div>
+
+          </div>
+
+          <span class="event-expand-label">
+
+            <span class="event-expand-text">
+              Ver detalhes
+            </span>
+
+            <svg
+              class="event-expand-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
               <path
                 d="M6 9L12 15L18 9"
                 stroke="currentColor"

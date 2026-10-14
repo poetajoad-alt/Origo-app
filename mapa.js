@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 10698)
-Total output lines: 1880
-
 "use strict";
 
 /* ==============================
@@ -897,7 +894,142 @@ function getInviteProposedDateTime(dateValue, timeValue) {
 }
 
 function validateInviteMatchDetails() {
-  const tcg = inviteTcgInput?.value.trim() ||…698 tokens truncated…= false;
+  const tcg = inviteTcgInput?.value.trim() || "";
+
+  const format = inviteFormatInput?.value.trim() || "";
+
+  const date = inviteDateInput?.value || "";
+
+  const time = inviteTimeInput?.value || "";
+
+  const location = inviteLocationInput?.value.trim() || "";
+
+  if (!selectedInviteModality) {
+    showInviteFormMessage("Escolha se a partida será presencial ou online.");
+
+    inviteModalityButtons[0]?.focus();
+
+    return null;
+  }
+
+  if (!tcg) {
+    showInviteFormMessage("Selecione o TCG da partida.");
+
+    inviteTcgInput?.focus();
+
+    return null;
+  }
+
+  if (format.length < 2) {
+    showInviteFormMessage("Informe o formato da partida.");
+
+    inviteFormatInput?.focus();
+
+    return null;
+  }
+
+  if (!date) {
+    showInviteFormMessage("Escolha a data da partida.");
+
+    inviteDateInput?.focus();
+
+    return null;
+  }
+
+  if (!time) {
+    showInviteFormMessage("Escolha o horário da partida.");
+
+    inviteTimeInput?.focus();
+
+    return null;
+  }
+
+  const proposedDateTime = getInviteProposedDateTime(date, time);
+
+  if (!proposedDateTime) {
+    showInviteFormMessage("A data ou o horário informado é inválido.");
+
+    inviteDateInput?.focus();
+
+    return null;
+  }
+
+  const currentMinute = new Date();
+
+  currentMinute.setSeconds(0, 0);
+
+  if (proposedDateTime.getTime() < currentMinute.getTime()) {
+    showInviteFormMessage(
+      "Escolha uma data e um horário que ainda não passaram.",
+    );
+
+    inviteDateInput?.focus();
+
+    return null;
+  }
+
+  if (selectedInviteModality === "presencial" && location.length < 2) {
+    showInviteFormMessage("Informe o local da partida presencial.");
+
+    inviteLocationInput?.focus();
+
+    return null;
+  }
+
+  if (!selectedInviteMessage) {
+    showInviteFormMessage("Escolha uma mensagem para acompanhar o convite.");
+
+    const firstVisibleMessage = Array.from(inviteMessageButtons).find(
+      (button) => {
+        return !button.hidden;
+      },
+    );
+
+    firstVisibleMessage?.focus();
+
+    return null;
+  }
+
+  clearInviteFormMessage();
+
+  return {
+    tcg,
+    format,
+    proposedDateTime,
+
+    location: selectedInviteModality === "presencial" ? location : "",
+  };
+}
+function selectInviteModality(button) {
+  if (!button || inviteIsSubmitting) {
+    return;
+  }
+
+  const modality = button.dataset.inviteModality || "";
+
+  if (!["presencial", "online"].includes(modality)) {
+    return;
+  }
+
+  selectedInviteModality = modality;
+  selectedInviteMessage = "";
+  clearInviteFormMessage();
+
+  inviteModalityButtons.forEach((otherButton) => {
+    const isSelected = otherButton === button;
+
+    otherButton.classList.toggle("is-selected", isSelected);
+
+    otherButton.setAttribute("aria-pressed", String(isSelected));
+  });
+
+  /*
+    Exibe os campos da partida depois
+    que a modalidade for escolhida.
+  */
+
+  if (inviteMatchDetails) {
+    inviteMatchDetails.hidden = false;
   }
 
   /*
