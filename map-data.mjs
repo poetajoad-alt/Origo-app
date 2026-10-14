@@ -11,7 +11,7 @@ export function createMapCollectionLoaders({ db, collection, getDocs, query, whe
 export function normalizeCoordinates(data = {}) {
   const read = (value) => {
     if (typeof value === "number") return value;
-    if (typeof value === "string" && value.trim() !== "") return Number(value);
+    if (typeof value === "string" && /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim())) return Number(value);
     return NaN;
   };
   const latitude = read(data.latitude);

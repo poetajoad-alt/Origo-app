@@ -79,3 +79,23 @@ test("online match keeps its own stylesheet and one module script", async () => 
   assert.equal((html.match(/partida-online\.js\?v=1/g) || []).length, 1);
   assert.equal(html.includes("base.css"), false);
 });
+
+test("query loaders target only the three public map collections with active records", async () => {
+  const calls = [];
+  const loaders = (await import("../map-data.mjs")).createMapCollectionLoaders({
+    db: {},
+    collection: (_db, name) => ({ name }),
+    where: (...args) => args,
+    query: (ref, ...filters) => ({ ref, filters }),
+    getDocs: async (q) => { calls.push(q); return { docs: [] }; },
+    waitForAuth: async () => {},
+  });
+  await Promise.all(Object.values(loaders).map((load) => load()));
+  assert.deepEqual(calls.map(({ ref }) => ref.name).sort(), ["eventos", "lojas", "perfisPublicos"]);
+  assert.ok(calls.every(({ filters }) => filters[0][0] === "ativo" && filters[0][1] === "==" && filters[0][2] === true));
+});
+
+test("principal auth does not log user identifiers or private document contents", async () => {
+  const source = await readFile(new URL("../principal-auth.js", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /console\.log\([^\n]*(?:user\.uid|userData)/);
+});

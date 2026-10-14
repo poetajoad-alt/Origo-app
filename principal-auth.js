@@ -174,7 +174,6 @@ async function loadSideMenuUser() {
   try {
     const user = await authReady;
 
-    console.log("[Principal Auth] Usuário autenticado:", user.uid);
 
     const userReference = doc(db, "usuarios", user.uid);
 
