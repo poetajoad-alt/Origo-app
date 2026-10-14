@@ -3,8 +3,17 @@
     ".read": false,
     ".write": false,
     "presence": {
-      ".read": "auth != null",
       "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$sessionId": {
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.val() === true"
+        }
+      }
+    },
+    "mapPresence": {
+      "$uid": {
+        ".read": "auth != null",
         "$sessionId": {
           ".write": "auth != null && auth.uid === $uid",
           ".validate": "newData.val() === true"

@@ -2,30 +2,27 @@
 
 ## Estado desta implementação
 
-- A presença usa uma sessão por aba/dispositivo em `presence/{uid}/{sessionId}`. Cada sessão guarda somente o booleano `true`; não há localização, e-mail, nome ou disponibilidade no Realtime Database.
+- A presença privada usa uma sessão por aba/dispositivo em `presence/{uid}/{sessionId}`. Cada sessão guarda somente o booleano `true`; outras contas não podem ler esse ramo.
+- O índice mínimo `mapPresence/{uid}/{sessionId}` contém somente sessões online de jogadores que o cliente confirmou como participantes ativos do mapa no Firestore. Os mapas escutam caminhos individuais dos perfis públicos que já carregaram, nunca a raiz de presença.
 - O SDK observa `/.info/connected`, registra `onDisconnect().remove()` no servidor antes de gravar a sessão e repete o registro depois de cada reconexão.
 - Logout remove somente a sessão desta aba antes de chamar `signOut`. Cada outra aba/dispositivo tem sua própria chave.
 - `disponivel` permanece como preferência separada e continua controlando os convites existentes. A bolinha verde representa exclusivamente uma conexão confirmada.
-- Sem configuração, desconectado ou sem leitura autorizada, o estado é `desconhecido` e não aparece verde. Perfis desativados em “Aparecer no mapa” não são carregados pelo mapa e não recebem indicadores.
-- Visitantes não assinam nem leem presença. A leitura é habilitada somente para usuários autenticados.
+- Sem configuração, desconectado ou sem leitura autorizada, o estado é `desconhecido` e não aparece verde. Perfis desativados em “Aparecer no mapa” não são carregados pelo mapa e o cliente oficial remove a sessão correspondente do índice `mapPresence`.
+- Visitantes não assinam nem leem presença. Usuários autenticados podem ler o índice somente em um caminho exato `mapPresence/{uid}`. A leitura da raiz e a leitura de sessões privadas de outras contas são negadas.
 
-## Ativar o banco (ação manual necessária)
+## Regras e limite de confiança
 
-Não há instância RTDB nem `databaseURL` no projeto Firebase atual. Para habilitar a presença no projeto `origo-fe2da` sem mudar do plano Spark:
+`database.rules.json` contém a proposta de regras versionada e testada no Realtime Database Emulator. As regras negam por padrão, permitem ao próprio usuário ler sua sessão privada e gravar/remover somente sessões sob seu UID, e permitem que clientes autenticados leiam caminhos exatos do índice de mapa. Elas não permitem listar `/presence` nem `/mapPresence`.
 
-1. Acesse [Firebase Console](https://console.firebase.google.com/project/origo-fe2da/database) e abra **Build → Realtime Database**.
-2. Selecione **Create Database**. Escolha uma região próxima aos jogadores; a região não pode ser trocada depois de criada.
-3. Selecione **Start in locked mode** e crie o banco. Não selecione modo de teste nem regras abertas.
-4. Copie o endereço mostrado na página do banco. O Firebase usa `https://<DATABASE_NAME>.firebaseio.com` em `us-central1` e `https://<DATABASE_NAME>.<REGION>.firebasedatabase.app` nas outras regiões.
-5. Envie somente esse `databaseURL` para concluir a configuração local de `firebase-config.js`. O URL identifica o banco e não é uma senha.
+O RTDB não consegue consultar `perfisPublicos` no Firestore. Por isso não existe regra que prove que o UID em `mapPresence/{uid}` tem `ativo: true` no Firestore. O cliente oficial observa o documento do próprio perfil e só publica no índice enquanto ele está ativo; ao ocultar ou remover o perfil, remove a sessão pública. As regras impedem que um usuário escreva no caminho de outra pessoa, mas um cliente autenticado modificado ainda pode publicar a própria presença no índice mesmo com o perfil oculto. Assim, a ausência de publicação para perfis ocultos é garantida pelo aplicativo oficial, não por uma validação confiável do servidor. Sem backend confiável (por exemplo, Cloud Functions, que este projeto não quer habilitar), essa garantia entre produtos Firebase não pode ser imposta.
 
-Não publique regras. `database.rules.json` é somente uma proposta versionada e foi usada pelo emulador local. A regra proposta autoriza leitura somente a usuários autenticados e escrita apenas em `presence/{uid}/{sessionId}` quando `auth.uid == uid`, permitindo apenas o valor `true` e a remoção daquela sessão.
+Não publique regras como parte desta alteração. O `databaseURL` já foi configurado no commit `9a8d601`; esta tarefa altera somente regras versionadas e código do cliente.
 
 ## Regras de privacidade e consumo
 
-A presença não guarda dados pessoais, mas a chave `uid` é necessária para associar sessões às contas autenticadas. Usuários autenticados podem ler os estados da coleção `presence`; a interface só aplica o estado a perfis públicos que o Firestore já entregou ao mapa. A opção de aparecer no mapa continua sendo controlada pelo perfil no Firestore.
+O banco de presença não guarda dados pessoais, disponibilidade para jogar ou coordenadas. A chave `uid` e os identificadores aleatórios de sessão são necessários para relacionar o estado à conta e suportar abas/dispositivos separados. O índice revela apenas que existe uma sessão ativa para o UID consultado. Os mapas obtêm esses UIDs da consulta pública já filtrada de perfis do Firestore e criam listeners apenas nesses caminhos. Regras não impedem que um cliente autenticado consulte o caminho de um UID que já conheça; não há listagem pela raiz.
 
-No Spark, a Realtime Database tem limite de 100 conexões simultâneas, 1 GB de armazenamento e 10 GB/mês de downloads incluídos. Cada aba ou dispositivo conectado conta como uma conexão. O mapa usa um listener compartilhado da árvore de presença por página e não usa polling. Acompanhe conexões e downloads na aba **Usage** do Realtime Database. Fontes oficiais: [limites](https://firebase.google.com/docs/database/usage/limits) e [faturamento](https://firebase.google.com/docs/database/usage/billing).
+No Spark, a Realtime Database tem limite de 100 conexões simultâneas, 1 GB de armazenamento e 10 GB/mês de downloads incluídos. Cada aba ou dispositivo conectado conta como uma conexão. Cada perfil visível no mapa usa um listener no índice individual, sem polling e sem listener de raiz; páginas com muitos jogadores podem baixar mais dados e criar mais listeners. Acompanhe conexões e downloads na aba **Usage** do Realtime Database. Fontes oficiais: [limites](https://firebase.google.com/docs/database/usage/limits) e [faturamento](https://firebase.google.com/docs/database/usage/billing).
 
 O Firebase executa `onDisconnect()` no servidor depois que a conexão cai ou o cliente fecha, inclusive em encerramentos abruptos. A detecção de uma perda de rede pode levar algum tempo até que o servidor perceba o socket interrompido. Em paralelo, o próprio mapa muda seus estados para desconhecido quando a conexão RTDB local cai.
 

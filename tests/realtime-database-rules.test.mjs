@@ -47,27 +47,75 @@ test("loads the RTDB rules into the local emulator", async () => {
   assert.ok(response.ok, `rules load failed: ${response.status} ${await response.text()}`);
 });
 
-test("visitors cannot read or write presence; authenticated players can read", async () => {
+test("anonymous visitors cannot read or write private or map presence", async () => {
   await assertDenied("presence.json");
+  await assertDenied("mapPresence.json");
+  await assertDenied("presence/guest/session-1.json");
+  await assertDenied("mapPresence/guest/session-1.json");
   await assertDenied("presence/guest/session-1.json", { method: "PUT", body: true });
-  await assertDenied("presence/guest/session-1.json", { method: "DELETE" });
-  await assertAllowed("presence.json", { uid: "player-1" });
+  await assertDenied("mapPresence/guest/session-1.json", { method: "PUT", body: true });
 });
 
-test("players can write only their own session and only the boolean true", async () => {
+test("private session reads are scoped to the owning account; root enumeration is denied", async () => {
+  await assertAllowed("presence/player-1/session-a.json", { uid: "player-1", method: "PUT", body: true });
+  await assertAllowed("presence/player-1.json", { uid: "player-1" });
+  await assertDenied("presence/player-1.json", { uid: "player-2" });
+  await assertDenied("presence.json", { uid: "player-2" });
+});
+
+test("only exact map-presence user paths are readable by authenticated map clients", async () => {
+  await assertAllowed("mapPresence/visible-player/session-a.json", { uid: "visible-player", method: "PUT", body: true });
+  const visible = await assertAllowed("mapPresence/visible-player.json", { uid: "map-viewer" });
+  assert.deepEqual(await visible.json(), { "session-a": true });
+  await assertDenied("mapPresence.json", { uid: "map-viewer" });
+});
+
+test("a hidden player's private sessions are inaccessible and absent from the map index", async () => {
+  await assertAllowed("presence/hidden-player/session-a.json", { uid: "hidden-player", method: "PUT", body: true });
+
+  await assertDenied("presence/hidden-player.json", { uid: "map-viewer" });
+  const mapIndex = await assertAllowed("mapPresence/hidden-player.json", { uid: "map-viewer" });
+  assert.equal(await mapIndex.json(), null);
+});
+
+test("players can only write their own boolean session paths", async () => {
   await assertAllowed("presence/writer-1/session-a.json", { uid: "writer-1", method: "PUT", body: true });
+  await assertAllowed("mapPresence/writer-1/session-a.json", { uid: "writer-1", method: "PUT", body: true });
   await assertAllowed("presence/writer-1/session-a.json", { uid: "writer-1", method: "DELETE" });
+  await assertAllowed("mapPresence/writer-1/session-a.json", { uid: "writer-1", method: "DELETE" });
+
   await assertDenied("presence/player-2/session-a.json", { uid: "writer-1", method: "PUT", body: true });
+  await assertDenied("mapPresence/player-2/session-a.json", { uid: "writer-1", method: "PUT", body: true });
   await assertDenied("presence/player-2/session-a.json", { uid: "writer-1", method: "DELETE" });
+  await assertDenied("mapPresence/player-2/session-a.json", { uid: "writer-1", method: "DELETE" });
   await assertDenied("presence/writer-1.json", { uid: "writer-1", method: "PUT", body: { sessionA: true } });
+  await assertDenied("mapPresence/writer-1.json", { uid: "writer-1", method: "PUT", body: { sessionA: true } });
   await assertDenied("presence/writer-1/session-b.json", { uid: "writer-1", method: "PUT", body: false });
-  await assertDenied("presence/writer-1/session-c.json", { uid: "writer-1", method: "PUT", body: { connected: true, device: "phone" } });
+  await assertDenied("mapPresence/writer-1/session-b.json", { uid: "writer-1", method: "PUT", body: { connected: true } });
 });
 
-test("removing one session preserves another active session for the same account", async () => {
+test("removing one session leaves another active session in both indexes", async () => {
   await assertAllowed("presence/multi-tab/session-a.json", { uid: "multi-tab", method: "PUT", body: true });
   await assertAllowed("presence/multi-tab/session-b.json", { uid: "multi-tab", method: "PUT", body: true });
+  await assertAllowed("mapPresence/multi-tab/session-a.json", { uid: "multi-tab", method: "PUT", body: true });
+  await assertAllowed("mapPresence/multi-tab/session-b.json", { uid: "multi-tab", method: "PUT", body: true });
   await assertAllowed("presence/multi-tab/session-a.json", { uid: "multi-tab", method: "DELETE" });
-  const response = await assertAllowed("presence/multi-tab.json", { uid: "observer" });
-  assert.deepEqual(await response.json(), { "session-b": true });
+  await assertAllowed("mapPresence/multi-tab/session-a.json", { uid: "multi-tab", method: "DELETE" });
+
+  const privateSessions = await assertAllowed("presence/multi-tab.json", { uid: "multi-tab" });
+  const mapSessions = await assertAllowed("mapPresence/multi-tab.json", { uid: "map-viewer" });
+  assert.deepEqual(await privateSessions.json(), { "session-b": true });
+  assert.deepEqual(await mapSessions.json(), { "session-b": true });
+});
+
+test("an opted-out client can still publish its own map index (cross-service consent limit)", async () => {
+  // RTDB Rules cannot check the Firestore profile's map opt-in. The client must
+  // follow that preference; a modified authenticated client can publish itself.
+  await assertAllowed("mapPresence/hidden-but-malicious/session-a.json", {
+    uid: "hidden-but-malicious",
+    method: "PUT",
+    body: true,
+  });
+  const selfPublished = await assertAllowed("mapPresence/hidden-but-malicious.json", { uid: "map-viewer" });
+  assert.deepEqual(await selfPublished.json(), { "session-a": true });
 });

@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 10110)
+Total output lines: 1768
+
 "use strict";
 
 /* ==============================
@@ -897,26 +900,7 @@ function createEventCardHTML(event, index) {
               </p>
 
               <time
-                ${dateTimeAttribute ? `datetime="${dateTimeAttribute}"` : ""}
-              >
-                ${escapeHTML(summaryDate)}
-              </time>
-            </div>
-
-          </div>
-
-          <span class="event-expand-label">
-
-            <span class="event-expand-text">
-              Ver detalhes
-            </span>
-
-            <svg
-              class="event-expand-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-            >
+                ${dateTimeAttribute ? `datetime="${date…110 tokens truncated…  >
               <path
                 d="M6 9L12 15L18 9"
                 stroke="currentColor"
@@ -1716,16 +1700,19 @@ async function initializeMapPreview() {
   };
   renderPreviewMarkers();
 
-  if (includePlayers && !unsubscribePreviewPresence) {
+  const visiblePlayerIds = previewPoints
+    .filter((point) => point.type === "player")
+    .map((point) => point.id);
+
+  if (includePlayers && visiblePlayerIds.length && !unsubscribePreviewPresence) {
     unsubscribePreviewPresence = subscribeToPresence(
+      visiblePlayerIds,
       (snapshot, known) => {
         previewPoints = applyPresenceToPoints(previewPoints, snapshot, known);
         renderPreviewMarkers();
       },
       (error) => {
-        console.warn("[Prévia do mapa] Presença indisponível; status mantidos como desconhecidos.", error);
-        previewPoints = applyPresenceToPoints(previewPoints, {}, false);
-        renderPreviewMarkers();
+        console.warn("[Prévia do mapa] Não foi possível atualizar a presença de um perfil visível.", error);
       },
     );
   }
