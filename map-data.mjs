@@ -20,6 +20,12 @@ export function createMapCollectionLoaders({
   }]));
 }
 
+// A escolha de aparecer no mapa também não inclui o marcador do próprio jogador.
+export function filterMapPointsForViewer(points = [], viewerUid = "") {
+  if (!viewerUid) return points;
+  return points.filter((point) => point.type !== "player" || point.id !== viewerUid);
+}
+
 export function normalizeCoordinates(data = {}) {
   const read = (value) => {
     if (typeof value === "number") return value;
